@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Help Viewer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f17;
+      --sidebar-bg: #13131f;
+      --surface: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --blue: #3b82f6;
+      --violet: #8b5cf6;
+      --hover: rgba(59,130,246,0.1);
+      --active: rgba(59,130,246,0.2);
+      --toolbar-h: 44px;
+      --sidebar-w: 280px;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      height: var(--toolbar-h); min-height: var(--toolbar-h);
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .toolbar-logo { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-right: 8px; }
+    .toolbar-logo span { font-size: 1.3rem; }
+    .book-title { color: var(--muted); font-size: 0.85rem; margin-right: auto; }
+    .tb-btn {
+      padding: 4px 10px; border-radius: 5px; font-size: 0.8rem;
+      cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--text); transition: all 0.15s;
+    }
+    .tb-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
+    .tb-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+    /* ── Search ── */
+    .search-wrap {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      border-radius: 5px; padding: 0 8px; gap: 4px;
+    }
+    #search-input {
+      background: transparent; border: none; outline: none;
+      color: var(--text); font-size: 0.8rem; width: 160px; padding: 4px 0;
+    }
+    #search-input::placeholder { color: var(--muted); }
+
+    /* ── Main layout ── */
+    .main {
+      display: flex; flex: 1; overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w); min-width: 160px; max-width: 500px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      resize: horizontal;
+    }
+    .sidebar-header {
+      padding: 10px 12px; font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .toc-scroll { flex: 1; overflow-y: auto; padding: 6px 0; }
+
+    /* TOC tree */
+    .toc-item {
+      cursor: pointer; user-select: none;
+      padding: 5px 12px 5px 0;
+      display: flex; align-items: flex-start; gap: 4px;
+      font-size: 0.83rem;
+    }
+    .toc-item .toggle { width: 16px; flex-shrink: 0; font-size: 0.65rem; color: var(--muted); padding-top: 2px; }
+    .toc-item a {
+      color: var(--text); text-decoration: none; flex: 1;
+      border-radius: 4px; padding: 1px 4px;
+      transition: background 0.15s;
+    }
+    .toc-item a:hover { background: var(--hover); }
+    .toc-item a.active { background: var(--active); color: #fff; font-weight: 500; }
+    .toc-children { display: none; }
+    .toc-children.open { display: block; }
+
+    /* Flat file list */
+    .file-item {
+      display: block; padding: 4px 12px;
+      font-size: 0.8rem; color: var(--muted); text-decoration: none;
+      border-radius: 4px; transition: background 0.15s, color 0.15s;
+    }
+    .file-item:hover, .file-item.active { background: var(--hover); color: var(--text); }
+
+    /* ── Content pane ── */
+    .content { flex: 1; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+    #content-frame { flex: 1; border: none; width: 100%; }
+
+    /* Loading overlay */
+    #loading {
+      position: absolute; inset: 0;
+      background: rgba(15,15,23,0.7); display: flex; align-items: center;
+      justify-content: center; z-index: 10; pointer-events: none;
+    }
+    #loading.hidden { display: none; }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border);
+      border-top-color: var(--blue); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Search results ── */
+    #search-results {
+      position: absolute; top: var(--toolbar-h); left: var(--sidebar-w);
+      right: 0; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 0 0 8px 8px; z-index: 20; max-height: 50vh;
+      overflow-y: auto; display: none;
+    }
+    #search-results.open { display: block; }
+    .sr-item { padding: 10px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .sr-item:hover { background: var(--hover); }
+    .sr-item h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 4px; }
+    .sr-item p { font-size: 0.78rem; color: var(--muted); }
+    mark { background: rgba(59,130,246,0.3); color: #fff; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div></div>
+
+<div class="toolbar">
+  <div class="toolbar-logo"><span>📖</span> Help</div>
+  <span class="book-title" id="book-label"></span>
+
+  <button class="tb-btn" onclick="history.back()" title="Back">← Back</button>
+  <button class="tb-btn" onclick="history.forward()" title="Forward">Forward →</button>
+  <div class="tb-sep"></div>
+
+  <div class="search-wrap">
+    <span style="color:var(--muted);font-size:.85rem">🔍</span>
+    <input id="search-input" type="text" placeholder="Search..." autocomplete="off"/>
+  </div>
+
+  <div class="tb-sep"></div>
+  <a class="tb-btn" href="/" title="All books">📚 All books</a>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-header">Contents</div>
+    <div class="toc-scroll" id="toc-panel"></div>
+  </div>
+
+  <div class="content" style="position:relative;">
+    <iframe id="content-frame" src="about:blank" onload="onFrameLoad()"></iframe>
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<script>
+  const params   = new URLSearchParams(location.search);
+  const bookName = params.get('book');
+  const initPage = params.get('page');
+
+  let allFiles = [];
+  let currentFile = null;
+
+  document.getElementById('book-label').textContent = bookName || '';
+  document.title = bookName ? `Help — ${bookName}` : 'Help';
+
+  // ── Load TOC ─────────────────────────────────────────────────────────────
+  async function init() {
+    if (!bookName) { location.href = '/'; return; }
+
+    try {
+      const res  = await fetch(`/api/help/${encodeURIComponent(bookName)}/toc`);
+      const data = await res.json();
+      allFiles = data.files || [];
+
+      if (data.type === 'tree' && data.entries?.length) {
+        renderTree(data.entries, document.getElementById('toc-panel'), 0);
+        flattenTree(data.entries);
+      } else {
+        renderFlatList(allFiles);
+      }
+
+      // Navigate to initial page
+      const target = initPage
+        ? `/help/${encodeURIComponent(bookName)}/${initPage}`
+        : `/api/help/${encodeURIComponent(bookName)}/default`;
+      navigate(target);
+    } catch (e) {
+      document.getElementById('toc-panel').innerHTML = `<p style="padding:12px;color:var(--muted);font-size:.8rem">Failed to load TOC: ${e.message}</p>`;
+    }
+  }
+
+  // ── Tree render ───────────────────────────────────────────────────────────
+  function renderTree(entries, container, depth) {
+    entries.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'toc-item';
+      row.style.paddingLeft = (12 + depth * 16) + 'px';
+
+      const hasChildren = entry.children?.length > 0;
+      const toggle = document.createElement('span');
+      toggle.className = 'toggle';
+      toggle.textContent = hasChildren ? '▶' : '';
+      row.appendChild(toggle);
+
+      const link = document.createElement('a');
+      link.textContent = entry.name;
+      if (entry.local) {
+        link.href = '#';
+        link.onclick = e => { e.preventDefault(); navigatePage(entry.local); markActive(link); };
+        link.dataset.local = entry.local;
+      }
+      row.appendChild(link);
+      container.appendChild(row);
+
+      if (hasChildren) {
+        const childDiv = document.createElement('div');
+        childDiv.className = 'toc-children';
+        renderTree(entry.children, childDiv, depth + 1);
+        container.appendChild(childDiv);
+
+        toggle.style.cursor = 'pointer';
+        toggle.onclick = () => {
+          const open = childDiv.classList.toggle('open');
+          toggle.textContent = open ? '▼' : '▶';
+        };
+      }
+    });
+  }
+
+  function flattenTree(entries) {
+    entries.forEach(e => {
+      if (e.local) allFiles.push(e.local);
+      if (e.children?.length) flattenTree(e.children);
+    });
+  }
+
+  // ── Flat list render ──────────────────────────────────────────────────────
+  function renderFlatList(files) {
+    const panel = document.getElementById('toc-panel');
+    panel.innerHTML = files.map(f =>
+      `<a class="file-item" href="#" data-file="${escAttr(f)}"
+          onclick="event.preventDefault();navigatePage('${escAttr(f)}');markActiveFile(this)">${escHtml(f)}</a>`
+    ).join('');
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function navigate(url) {
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('content-frame').src = url;
+  }
+
+  function navigatePage(local) {
+    currentFile = local;
+    navigate(`/help/${encodeURIComponent(bookName)}/${encodeURIComponent(local)}`);
+  }
+
+  function onFrameLoad() {
+    document.getElementById('loading').classList.add('hidden');
+  }
+
+  function markActive(el) {
+    document.querySelectorAll('.toc-item a.active').forEach(a => a.classList.remove('active'));
+    el?.classList.add('active');
+  }
+
+  function markActiveFile(el) {
+    document.querySelectorAll('.file-item.active').forEach(a => a.classList.remove('active'));
+    el?.classList.add('active');
+  }
+
+  // ── Search ────────────────────────────────────────────────────────────────
+  let searchTimer;
+  const searchInput   = document.getElementById('search-input');
+  const searchResults = document.getElementById('search-results');
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (!q) { searchResults.classList.remove('open'); return; }
+    searchTimer = setTimeout(() => doSearch(q), 300);
+  });
+
+  document.addEventListener('click', e => {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.classList.remove('open');
+    }
+  });
+
+  async function doSearch(q) {
+    // Client-side search: fetch each HTML page from sidebar list and grep text
+    // For large books use the server-side search endpoint (future enhancement)
+    const lq = q.toLowerCase();
+    const hits = [];
+
+    const filesToSearch = allFiles.slice(0, 50); // limit to avoid flooding
+    for (const file of filesToSearch) {
+      try {
+        const res = await fetch(`/help/${encodeURIComponent(bookName)}/${encodeURIComponent(file)}`);
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const text = doc.body?.innerText || '';
+        const idx = text.toLowerCase().indexOf(lq);
+        if (idx !== -1) {
+          const snippet = text.substring(Math.max(0, idx - 60), idx + 120)
+            .replace(/\s+/g, ' ').trim();
+          const title = doc.title || file;
+          hits.push({ file, title, snippet, idx });
+        }
+        if (hits.length >= 10) break;
+      } catch (_) {}
+    }
+
+    renderSearchResults(hits, q);
+  }
+
+  function renderSearchResults(hits, q) {
+    if (!hits.length) {
+      searchResults.innerHTML = `<div class="sr-item"><p>No results for "<strong>${escHtml(q)}</strong>"</p></div>`;
+    } else {
+      searchResults.innerHTML = hits.map(h => {
+        const re = new RegExp(escRe(q), 'gi');
+        const snippet = h.snippet.replace(re, m => `<mark>${escHtml(m)}</mark>`);
+        return `<div class="sr-item" onclick="navigatePage('${escAttr(h.file)}');searchResults.classList.remove('open')">
+          <h4>${escHtml(h.title)}</h4>
+          <p>${snippet}</p>
+        </div>`;
+      }).join('');
+    }
+    searchResults.classList.add('open');
+  }
+
+  // ── Utils ─────────────────────────────────────────────────────────────────
+  function escHtml(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escAttr(s)  { return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function escRe(s)    { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+  init();
+</script>
+</body>
+</html>

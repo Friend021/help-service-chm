@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  chm-viewer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chm-viewer-service
+    ports:
+      - "8085:8085"
+    volumes:
+      # Mount your CHM files here — drop .chm files into ./chm-files/
+      - ./chm-files:/app/chm-files
+      # Extracted HTML is cached here — persists between restarts
+      - ./converted:/app/converted
+    environment:
+      - CHM_FILES_DIR=/app/chm-files
+      - CHM_CONVERTED_DIR=/app/converted
+      - CHM_SEVEN_ZIP_PATH=7z
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/api/help"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

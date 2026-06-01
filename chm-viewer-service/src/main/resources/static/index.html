@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CHM Viewer — Available Help Books</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f17;
+      --surface: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --blue: #3b82f6;
+      --violet: #8b5cf6;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    header h1 span { font-size: 1.3rem; }
+    .actions { display: flex; gap: 8px; }
+    .btn {
+      padding: 6px 14px; border-radius: 6px; font-size: 0.8rem;
+      font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--text); transition: all 0.2s;
+    }
+    .btn:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+
+    main { padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .status-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-radius: 8px; margin-bottom: 1.5rem;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 0.85rem; color: var(--muted);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      color: var(--text);
+      transition: border-color 0.2s, transform 0.2s;
+      display: block; position: relative;
+    }
+    .card:hover { border-color: rgba(59,130,246,0.4); transform: translateY(-2px); }
+    .card-link { text-decoration: none; color: inherit; display: block; }
+    .card-icon { font-size: 2rem; margin-bottom: 12px; }
+    .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .card-meta { font-size: 0.8rem; color: var(--muted); display: flex; gap: 12px; }
+    .btn-delete {
+      position: absolute; top: 10px; right: 10px;
+      background: transparent; border: 1px solid transparent;
+      color: var(--muted); cursor: pointer; border-radius: 6px;
+      padding: 4px 7px; font-size: 0.9rem; line-height: 1;
+      transition: all 0.15s; opacity: 0;
+    }
+    .card:hover .btn-delete { opacity: 1; }
+    .btn-delete:hover { background: rgba(239,68,68,0.15); border-color: var(--red); color: var(--red); }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .badge-ready  { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-error  { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-converting { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+    .empty {
+      text-align: center; padding: 4rem 2rem; color: var(--muted);
+    }
+    .empty h2 { font-size: 1.2rem; margin-bottom: 8px; color: var(--text); }
+    .empty code { background: var(--surface); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid var(--border);
+      border-top-color: var(--blue); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 3rem auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<header>
+  <h1><span>📚</span> CHM Help Viewer</h1>
+  <div class="actions">
+    <a class="btn" href="/upload.html">+ Upload</a>
+    <button class="btn btn-primary" onclick="refresh()">↺ Refresh</button>
+  </div>
+</header>
+
+<main>
+  <div class="status-bar">
+    <div class="dot"></div>
+    <span id="status-text">Loading...</span>
+  </div>
+  <div id="content"><div class="spinner"></div></div>
+</main>
+
+<script>
+  async function load() {
+    try {
+      const res = await fetch('/api/help');
+      const books = await res.json();
+      document.getElementById('status-text').textContent =
+        books.length === 0
+          ? 'No books found. Place .chm files in the chm-files/ directory.'
+          : `${books.length} book${books.length > 1 ? 's' : ''} available`;
+      renderBooks(books);
+    } catch (e) {
+      document.getElementById('content').innerHTML = `<div class="empty"><h2>Error</h2><p>${e.message}</p></div>`;
+    }
+  }
+
+  function renderBooks(books) {
+    if (!books.length) {
+      document.getElementById('content').innerHTML = `
+        <div class="empty">
+          <div style="font-size:3rem;margin-bottom:1rem">📂</div>
+          <h2>No help books yet</h2>
+          <p>Drop <code>.chm</code> files into the <code>chm-files/</code> directory<br/>and click <strong>↺ Refresh</strong>.</p>
+        </div>`;
+      return;
+    }
+    document.getElementById('content').innerHTML = `<div class="grid">${books.map(cardHtml).join('')}</div>`;
+  }
+
+  function cardHtml(b) {
+    const badgeClass = { READY: 'badge-ready', ERROR: 'badge-error', CONVERTING: 'badge-converting' }[b.status] || '';
+    const tocBadge = b.hasToc ? '<span style="color:#8b5cf6">✦ TOC</span>' : '';
+    return `
+      <div class="card">
+        <button class="btn-delete" title="Delete" onclick="deleteBook(event,'${escAttr(b.name)}')">🗑</button>
+        <a class="card-link" href="${b.viewerUrl}">
+          <div class="card-icon">📖</div>
+          <h3>${escHtml(b.name)}</h3>
+          <div class="card-meta">
+            <span class="badge ${badgeClass}">${b.status}</span>
+            <span>${b.pages} pages</span>
+            ${tocBadge}
+          </div>
+        </a>
+      </div>`;
+  }
+
+  async function deleteBook(e, name) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm(`Delete "${name}"?`)) return;
+    const res = await fetch(`/api/help/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (res.ok) await load();
+    else alert('Delete failed');
+  }
+
+  function escAttr(s) {
+    return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  async function refresh() {
+    document.getElementById('status-text').textContent = 'Refreshing...';
+    await fetch('/api/refresh', { method: 'POST' });
+    await load();
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  load();
+</script>
+</body>
+</html>

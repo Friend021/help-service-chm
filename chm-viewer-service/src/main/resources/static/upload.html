@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CHM Viewer — Upload</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f17;
+      --surface: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+    }
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    header h1 span { font-size: 1.3rem; }
+    .back-link {
+      font-size: 0.82rem; color: var(--muted); text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .back-link:hover { color: var(--text); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+
+    main { padding: 2.5rem 2rem; max-width: 680px; margin: 0 auto; }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed rgba(59,130,246,0.35);
+      border-radius: 16px;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: rgba(59,130,246,0.03);
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--blue);
+      background: rgba(59,130,246,0.07);
+    }
+    .drop-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .drop-zone h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+    .drop-zone p { font-size: 0.85rem; color: var(--muted); }
+    .drop-zone .hint { margin-top: 12px; font-size: 0.78rem; color: var(--muted); }
+
+    /* Upload queue */
+    .queue { margin-top: 2rem; display: flex; flex-direction: column; gap: 10px; }
+    .queue-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .queue-item .file-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .queue-item .info { flex: 1; min-width: 0; }
+    .queue-item .name { font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .queue-item .size { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .queue-item .status-badge {
+      font-size: 0.75rem; font-weight: 600; padding: 3px 10px;
+      border-radius: 20px; flex-shrink: 0; white-space: nowrap;
+    }
+    .badge-waiting  { background: rgba(100,116,139,0.15); color: var(--muted); }
+    .badge-uploading { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .badge-done     { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-error    { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    .progress-bar-wrap {
+      height: 4px; background: rgba(255,255,255,0.08);
+      border-radius: 2px; margin-top: 8px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%; background: var(--blue);
+      border-radius: 2px; transition: width 0.3s ease;
+      width: 0%;
+    }
+    .progress-bar.done { background: var(--green); }
+
+    .result-link {
+      margin-top: 6px; font-size: 0.8rem;
+      color: var(--blue); text-decoration: none;
+    }
+    .result-link:hover { text-decoration: underline; }
+
+    .error-msg { margin-top: 6px; font-size: 0.78rem; color: var(--red); }
+
+    /* Upload button */
+    .actions { margin-top: 1.5rem; display: flex; gap: 10px; justify-content: flex-end; }
+    .btn {
+      padding: 8px 20px; border-radius: 8px; font-size: 0.85rem;
+      font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--text); transition: all 0.2s;
+    }
+    .btn:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #2563eb; }
+  </style>
+</head>
+<body>
+<header>
+  <h1><span>📤</span> Upload CHM Book</h1>
+  <a class="back-link" href="/">&#8592; Back to Library</a>
+</header>
+
+<main>
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".chm" multiple />
+    <div class="drop-icon">📂</div>
+    <h2>Drop .chm files here</h2>
+    <p>or click to choose files</p>
+    <p class="hint">Max file size: 512 MB per file</p>
+  </div>
+
+  <div class="queue" id="queue"></div>
+
+  <div class="actions">
+    <button class="btn" id="clearBtn" onclick="clearDone()" style="display:none">Clear done</button>
+    <button class="btn btn-primary" id="uploadBtn" onclick="startUpload()" disabled>Upload all</button>
+  </div>
+</main>
+
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const queue = document.getElementById('queue');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  let items = [];
+
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles([...e.dataTransfer.files]);
+  });
+  fileInput.addEventListener('change', () => {
+    addFiles([...fileInput.files]);
+    fileInput.value = '';
+  });
+
+  function addFiles(files) {
+    files.forEach(f => {
+      if (!f.name.toLowerCase().endsWith('.chm')) return;
+      if (items.find(i => i.file.name === f.name)) return;
+      const id = Date.now() + Math.random();
+      items.push({ id, file: f, state: 'waiting' });
+      renderItem({ id, file: f, state: 'waiting' });
+    });
+    uploadBtn.disabled = items.every(i => i.state !== 'waiting');
+  }
+
+  function renderItem(item) {
+    const el = document.createElement('div');
+    el.className = 'queue-item';
+    el.id = 'item-' + item.id;
+    el.innerHTML = `
+      <span class="file-icon">📄</span>
+      <div class="info">
+        <div class="name">${escHtml(item.file.name)}</div>
+        <div class="size">${fmtSize(item.file.size)}</div>
+        <div class="progress-bar-wrap" id="bar-wrap-${item.id}" style="display:none">
+          <div class="progress-bar" id="bar-${item.id}"></div>
+        </div>
+        <div id="extra-${item.id}"></div>
+      </div>
+      <span class="status-badge badge-waiting" id="badge-${item.id}">Waiting</span>
+    `;
+    queue.appendChild(el);
+  }
+
+  async function startUpload() {
+    uploadBtn.disabled = true;
+    const pending = items.filter(i => i.state === 'waiting');
+    for (const item of pending) {
+      await uploadOne(item);
+    }
+    uploadBtn.disabled = items.every(i => i.state !== 'waiting');
+    clearBtn.style.display = items.some(i => i.state === 'done') ? '' : 'none';
+  }
+
+  function uploadOne(item) {
+    return new Promise((resolve) => {
+      item.state = 'uploading';
+      setBadge(item.id, 'Uploading…', 'badge-uploading');
+      document.getElementById('bar-wrap-' + item.id).style.display = '';
+
+      const fd = new FormData();
+      fd.append('file', item.file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/upload');
+
+      xhr.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return;
+        const pct = Math.round(e.loaded / e.total * 100);
+        const bar = document.getElementById('bar-' + item.id);
+        if (bar) bar.style.width = pct + '%';
+      };
+
+      xhr.onload = () => {
+        const bar = document.getElementById('bar-' + item.id);
+        if (xhr.status === 200) {
+          item.state = 'done';
+          const data = JSON.parse(xhr.responseText);
+          if (bar) { bar.style.width = '100%'; bar.classList.add('done'); }
+          setBadge(item.id, 'Done', 'badge-done');
+          const extra = document.getElementById('extra-' + item.id);
+          if (extra) extra.innerHTML = `<a class="result-link" href="${escHtml(data.viewerUrl)}">Open viewer →</a>`;
+        } else {
+          item.state = 'error';
+          let msg = 'Upload failed';
+          try { msg = JSON.parse(xhr.responseText).error || msg; } catch (_) {}
+          if (bar) bar.style.width = '100%';
+          setBadge(item.id, 'Error', 'badge-error');
+          const extra = document.getElementById('extra-' + item.id);
+          if (extra) extra.innerHTML = `<div class="error-msg">${escHtml(msg)}</div>`;
+        }
+        resolve();
+      };
+
+      xhr.onerror = () => {
+        item.state = 'error';
+        setBadge(item.id, 'Error', 'badge-error');
+        resolve();
+      };
+
+      xhr.send(fd);
+    });
+  }
+
+  function setBadge(id, text, cls) {
+    const el = document.getElementById('badge-' + id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'status-badge ' + cls;
+  }
+
+  function clearDone() {
+    items = items.filter(i => {
+      if (i.state === 'done') {
+        const el = document.getElementById('item-' + i.id);
+        if (el) el.remove();
+        return false;
+      }
+      return true;
+    });
+    clearBtn.style.display = 'none';
+    uploadBtn.disabled = items.every(i => i.state !== 'waiting');
+  }
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

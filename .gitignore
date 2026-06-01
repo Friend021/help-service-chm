@@ -1,0 +1,19 @@
+# Documents
+estimation.csv
+estimation.doc
+
+# CHM converted cache (генерируется автоматически)
+chm-viewer-service/converted/
+chm-viewer-service/chm-files/
+
+# Maven build output
+chm-viewer-service/target/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+.vscode/
