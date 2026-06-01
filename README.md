@@ -101,16 +101,6 @@ Navigator будет доступен на http://localhost:8080
 chm-viewer-service/test-data/WebNavigator_UserGuide.chm
 ```
 
-Скопируй его в рабочую папку сервиса и нажми **↺ Refresh**:
-
-```powershell
-# Windows
-copy chm-viewer-service\test-data\WebNavigator_UserGuide.chm chm-viewer-service\chm-files\
-
-# Linux / Astra Linux
-cp chm-viewer-service/test-data/WebNavigator_UserGuide.chm chm-viewer-service/chm-files/
-```
-
 ---
 
 ## Использование
