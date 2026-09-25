@@ -53,6 +53,14 @@
                 <a class="link" href="#" onclick="return false;">Карта развивающих действий</a>
             </div>
 
+            <!-- Возврат плана из «Компаса» -->
+            <div class="notice notice--error" th:if="${importError}" th:text="${importError}"></div>
+            <div class="notice" th:if="${imported}">
+                Приоритеты перенесены из «Компаса»
+                <span th:if="${imported.targetRole}"
+                      th:text="'· целевая роль: ' + ${imported.targetRole}"></span>
+            </div>
+
             <h2 class="section-title">Приоритеты развития</h2>
 
             <!-- A.5 Таблица приоритетов -->
@@ -71,7 +79,24 @@
                     <th></th>
                 </tr>
                 </thead>
-                <tbody id="prioritiesBody">
+                <!-- Строки, перенесённые из «Компаса»: разложены по колонкам формы -->
+                <tbody id="prioritiesBody" th:if="${imported}">
+                <tr th:each="row, it : ${imported.rows}">
+                    <td class="cell-priority" th:text="${row.order}">1</td>
+                    <td class="cell-goal" th:text="${row.goal}"></td>
+                    <td>
+                        <div th:text="${row.competencies}"></div>
+                        <div class="cell-activities" th:if="${!#strings.isEmpty(row.activities)}"
+                             th:text="'Активности: ' + ${row.activities}"></div>
+                    </td>
+                    <td class="cell-actions">
+                        <button th:unless="${it.first}" type="button" class="remove-row"
+                                title="Удалить строку">&#10006;</button>
+                    </td>
+                </tr>
+                </tbody>
+
+                <tbody id="prioritiesBody" th:unless="${imported}">
                 <tr>
                     <td class="cell-priority">1</td>
                     <td>

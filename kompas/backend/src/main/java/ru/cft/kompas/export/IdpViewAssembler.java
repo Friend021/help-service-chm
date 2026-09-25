@@ -86,6 +86,7 @@ public class IdpViewAssembler {
         return new IdpView(idp.getId(),
                 idp.getDate(),
                 idp.getStatus().name(),
+                employee == null ? null : employee.getExternalId(),
                 employee == null ? null : employee.getFullName(),
                 employee == null ? null : employee.getManagerFullName(),
                 currentPosition,

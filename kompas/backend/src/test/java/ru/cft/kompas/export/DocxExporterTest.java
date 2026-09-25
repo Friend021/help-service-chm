@@ -15,7 +15,7 @@ class DocxExporterTest {
 
     @Test
     void формирует_документ_с_таблицей_приоритетов() throws Exception {
-        IdpView view = new IdpView(42L, LocalDate.of(2026, 9, 22), "DRAFT",
+        IdpView view = new IdpView(42L, LocalDate.of(2026, 9, 22), "DRAFT", "emp-001",
                 "Соколова Анна Дмитриевна", "Верещагин Олег Борисович",
                 "Разработчик Java", "Ведущий разработчик Java",
                 List.of(new IdpView.PriorityView(1, "Цель по SMART до 31.12.2026",
@@ -50,7 +50,7 @@ class DocxExporterTest {
 
     @Test
     void пустой_план_экспортируется_без_ошибок() {
-        IdpView view = new IdpView(1L, LocalDate.now(), "DRAFT", "Сотрудник", "Руководитель",
+        IdpView view = new IdpView(1L, LocalDate.now(), "DRAFT", "emp-001", "Сотрудник", "Руководитель",
                 "Должность", "Роль", List.of());
 
         assertThat(exporter.export(view)).isNotEmpty();

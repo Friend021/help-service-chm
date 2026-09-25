@@ -186,6 +186,24 @@ export class IdpPanelComponent {
     });
   }
 
+  /** Перенос плана обратно в «ПЛАН РАЗВИТИЯ»: уходим по подписанной ссылке. */
+  toLegacy(): void {
+    if (!this.current) {
+      return;
+    }
+    this.busy.set(true);
+    this.api.handoverIdp(this.current.id).subscribe({
+      next: (response) => {
+        this.busy.set(false);
+        window.location.href = response.url;
+      },
+      error: (response) => {
+        this.busy.set(false);
+        this.snackBar.open(this.errorText(response), 'Ок', { duration: 5000 });
+      }
+    });
+  }
+
   download(format: 'docx' | 'json'): void {
     if (!this.current) {
       return;

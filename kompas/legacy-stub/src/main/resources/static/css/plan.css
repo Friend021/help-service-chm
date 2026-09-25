@@ -244,3 +244,30 @@ body {
     font-size: 12px;
     font-family: "Times New Roman", Times, serif;
 }
+
+/* ---------- Возврат плана из «Компаса» ---------- */
+.notice {
+    margin: 20px 0 0;
+    padding: 9px 14px;
+    border-radius: 4px;
+    background: #eaf4f7;
+    border: 1px solid #cde3ea;
+    color: #1F6E80;
+    font-size: 13px;
+}
+
+.notice--error {
+    background: #fdecea;
+    border-color: #f5c6c2;
+    color: #b3261e;
+}
+
+.cell-goal {
+    line-height: 1.45;
+}
+
+.cell-activities {
+    margin-top: 6px;
+    color: #777;
+    font-size: 13px;
+}

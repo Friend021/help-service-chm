@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 import ru.cft.legacy.LegacyProperties;
 import ru.cft.legacy.model.DemoEmployee;
+import ru.cft.legacy.model.ImportedPlan;
 
 @Controller
 public class PlanController {
@@ -22,10 +23,14 @@ public class PlanController {
 
     private final LegacyProperties properties;
     private final EntryTokenIssuer tokenIssuer;
+    private final HandoverTokenVerifier handoverVerifier;
 
-    public PlanController(LegacyProperties properties, EntryTokenIssuer tokenIssuer) {
+    public PlanController(LegacyProperties properties,
+                          EntryTokenIssuer tokenIssuer,
+                          HandoverTokenVerifier handoverVerifier) {
         this.properties = properties;
         this.tokenIssuer = tokenIssuer;
+        this.handoverVerifier = handoverVerifier;
     }
 
     @GetMapping("/")
@@ -34,6 +39,35 @@ public class PlanController {
         model.addAttribute("employees", properties.getEmployees());
         model.addAttribute("employee", employee);
         model.addAttribute("today", LocalDate.now().format(DATE));
+        return "plan";
+    }
+
+    /**
+     * Возврат из «Компаса»: форма открывается уже заполненной приоритетами,
+     * которые сотрудник собрал в диалоге.
+     */
+    @GetMapping("/import")
+    public String importPlan(@RequestParam(name = "token", required = false) String token, Model model) {
+        ImportedPlan plan;
+        try {
+            plan = handoverVerifier.verify(token);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("employees", properties.getEmployees());
+            model.addAttribute("employee", resolve(null));
+            model.addAttribute("today", LocalDate.now().format(DATE));
+            model.addAttribute("importError", e.getMessage());
+            return "plan";
+        }
+
+        log.info("Принят план из «Компаса»: сотрудник {}, приоритетов {}",
+                plan.employeeExternalId(), plan.rows().size());
+
+        model.addAttribute("employees", properties.getEmployees());
+        model.addAttribute("employee", resolve(plan.employeeExternalId()));
+        model.addAttribute("today", plan.date() == null
+                ? LocalDate.now().format(DATE)
+                : LocalDate.parse(plan.date()).format(DATE));
+        model.addAttribute("imported", plan);
         return "plan";
     }
 

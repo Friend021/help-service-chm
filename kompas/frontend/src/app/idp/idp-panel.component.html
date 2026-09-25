@@ -39,6 +39,11 @@
           <button mat-menu-item (click)="download('json')">JSON</button>
         </mat-menu>
 
+        <button mat-stroked-button (click)="toLegacy()" [disabled]="busy() || editing()">
+          <mat-icon>open_in_new</mat-icon>
+          Перенести в ПЛАН РАЗВИТИЯ
+        </button>
+
         @if (!readOnly) {
           <button mat-flat-button color="primary" (click)="submit()"
                   [disabled]="busy() || editing()">
@@ -49,6 +54,8 @@
     }
   </header>
 
+  <!-- Прокручивается только содержимое: шапка с кнопками остаётся на месте -->
+  <div class="panel__body">
   @if (empty) {
     <div class="empty">
       <mat-icon>assignment</mat-icon>
@@ -145,4 +152,5 @@
       </tbody>
     </table>
   }
+  </div>
 </section>

@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ import ru.cft.kompas.export.IdpView;
 import ru.cft.kompas.export.IdpViewAssembler;
 import ru.cft.kompas.repo.EmployeeRepository;
 import ru.cft.kompas.repo.IdpRepository;
+import ru.cft.kompas.security.HandoverTokenIssuer;
 import ru.cft.kompas.security.SessionPrincipal;
 
 @RestController
@@ -40,19 +42,22 @@ public class IdpController {
     private final ExportService exportService;
     private final ApprovalNotifier approvalNotifier;
     private final EmployeeRepository employees;
+    private final HandoverTokenIssuer handoverTokenIssuer;
 
     public IdpController(IdpRepository idps,
                          IdpService idpService,
                          IdpViewAssembler viewAssembler,
                          ExportService exportService,
                          ApprovalNotifier approvalNotifier,
-                         EmployeeRepository employees) {
+                         EmployeeRepository employees,
+                         HandoverTokenIssuer handoverTokenIssuer) {
         this.idps = idps;
         this.idpService = idpService;
         this.viewAssembler = viewAssembler;
         this.exportService = exportService;
         this.approvalNotifier = approvalNotifier;
         this.employees = employees;
+        this.handoverTokenIssuer = handoverTokenIssuer;
     }
 
     @GetMapping("/{id}")
@@ -91,6 +96,19 @@ public class IdpController {
                 .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
                 .contentType(MediaType.parseMediaType(export.contentType()))
                 .body(export.content());
+    }
+
+    /**
+     * Ссылка на форму «ПЛАН РАЗВИТИЯ» с уже разложенным по её колонкам планом.
+     * Сотрудник уходит по ней и дозаполняет приоритеты в привычном сервисе.
+     */
+    @PostMapping("/{id}/handover")
+    public Map<String, String> handover(@PathVariable Long id, HttpServletRequest request) {
+        Idp idp = require(id, request);
+        if (idp.getPriorities().isEmpty()) {
+            throw new ApiException(409, "Нечего переносить: в плане нет приоритетов");
+        }
+        return Map.of("url", handoverTokenIssuer.issueUrl(viewAssembler.assemble(idp)));
     }
 
     /** Отправка на согласование: статус ON_APPROVAL + уведомление-заглушка. */

@@ -28,6 +28,11 @@ export class ApiService {
     return this.http.post<Idp>(`${this.base}/idp/${idpId}/submit`, {});
   }
 
+  /** Ссылка на форму «ПЛАН РАЗВИТИЯ» с уже перенесёнными приоритетами. */
+  handoverIdp(idpId: number): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.base}/idp/${idpId}/handover`, {});
+  }
+
   exportIdp(idpId: number, format: 'docx' | 'json'): Observable<HttpResponse<Blob>> {
     return this.http.post(`${this.base}/idp/${idpId}/export`, {}, {
       params: { format },

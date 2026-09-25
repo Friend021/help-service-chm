@@ -58,6 +58,15 @@
   flex-wrap: wrap;
 }
 
+/* Область прокрутки: шапка панели зафиксирована, скроллится только содержимое */
+.panel__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .empty {
   display: flex;
   flex-direction: column;
@@ -86,7 +95,6 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  overflow: auto;
 }
 
 .priorities th,

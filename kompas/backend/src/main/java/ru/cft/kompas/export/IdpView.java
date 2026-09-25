@@ -7,6 +7,7 @@ import java.util.List;
 public record IdpView(Long id,
                       LocalDate date,
                       String status,
+                      String employeeExternalId,
                       String employeeName,
                       String managerName,
                       String currentPosition,

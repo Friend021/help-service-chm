@@ -31,6 +31,7 @@ services:
       KOMPAS_LLM_MODEL: ${LLM_MODEL:-openai/gpt-4o-mini}
       KOMPAS_LLM_FALLBACK_MODEL: ${LLM_FALLBACK_MODEL:-}
       KOMPAS_SECURITY_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      KOMPAS_LEGACY_IMPORT_URL: ${LEGACY_IMPORT_URL:-http://localhost:8081/import}
     ports:
       - "8090:8080"
     depends_on:

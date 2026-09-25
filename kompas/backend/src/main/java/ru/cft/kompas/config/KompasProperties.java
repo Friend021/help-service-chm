@@ -12,6 +12,7 @@ public class KompasProperties {
     private Rag rag = new Rag();
     private Security security = new Security();
     private Approval approval = new Approval();
+    private Legacy legacy = new Legacy();
 
     public Llm getLlm() {
         return llm;
@@ -219,6 +220,40 @@ public class KompasProperties {
 
         public void setAccessTokenTtl(Duration accessTokenTtl) {
             this.accessTokenTtl = accessTokenTtl;
+        }
+    }
+
+    public Legacy getLegacy() {
+        return legacy;
+    }
+
+    public void setLegacy(Legacy legacy) {
+        this.legacy = legacy;
+    }
+
+    /** Возврат готового плана в сервис «ПЛАН РАЗВИТИЯ». */
+    public static class Legacy {
+
+        /** Куда отправлять сотрудника с подписанным планом. */
+        private String importUrl = "http://localhost:8081/import";
+
+        /** Время жизни токена передачи. */
+        private Duration handoverTtl = Duration.ofMinutes(10);
+
+        public String getImportUrl() {
+            return importUrl;
+        }
+
+        public void setImportUrl(String importUrl) {
+            this.importUrl = importUrl;
+        }
+
+        public Duration getHandoverTtl() {
+            return handoverTtl;
+        }
+
+        public void setHandoverTtl(Duration handoverTtl) {
+            this.handoverTtl = handoverTtl;
         }
     }
 

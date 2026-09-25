@@ -49,6 +49,9 @@ kompas:
   security:
     jwt-secret: ${KOMPAS_SECURITY_JWT_SECRET:change-me-to-a-long-random-string-at-least-32-chars}
     access-token-ttl: PT12H
+  legacy:
+    # Куда вернуть готовый план в сервис «ПЛАН РАЗВИТИЯ»
+    import-url: ${KOMPAS_LEGACY_IMPORT_URL:http://localhost:8081/import}
   approval:
     # log — заглушка уведомления руководителю
     notifier: log
