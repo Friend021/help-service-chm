@@ -147,8 +147,14 @@ public class DialogOrchestrator {
                 idpService.toDraft(idp, targetRole == null ? null : targetRole.getTitle()));
 
         List<ChatMessage> history = history(session.getId());
+        boolean stalled = session.getStageTurns() >= PromptBuilder.STALL_AFTER_TURNS;
+        if (stalled) {
+            log.info("Сессия {}: стадия {} не меняется {} ходов — подсказываю модели сдвинуться",
+                    session.getId(), session.getStage(), session.getStageTurns());
+        }
+
         List<ChatMessage> prompt = promptBuilder.build(
-                session.getStage(), state, ragContext, history, userMessage);
+                session.getStage(), state, ragContext, history, userMessage, stalled);
 
         AssistantEnvelope envelope = callWithRetry(prompt, session.getStage());
 
@@ -171,6 +177,7 @@ public class DialogOrchestrator {
         }
 
         DialogStage nextStage = resolveNextStage(envelope, idp);
+        session.setStageTurns(nextStage == session.getStage() ? session.getStageTurns() + 1 : 0);
         session.setStage(nextStage);
         if (nextStage == DialogStage.FINALIZE) {
             session.setStatus(SessionStatus.COMPLETED);

@@ -36,6 +36,10 @@ public class DialogSession {
     @Column(nullable = false)
     private SessionStatus status = SessionStatus.ACTIVE;
 
+    /** Сколько ходов подряд сессия стоит на текущей стадии. Защита от зацикливания. */
+    @Column(name = "stage_turns", nullable = false)
+    private int stageTurns = 0;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -93,6 +97,14 @@ public class DialogSession {
 
     public void setStatus(SessionStatus status) {
         this.status = status;
+    }
+
+    public int getStageTurns() {
+        return stageTurns;
+    }
+
+    public void setStageTurns(int stageTurns) {
+        this.stageTurns = stageTurns;
     }
 
     public Instant getCreatedAt() {

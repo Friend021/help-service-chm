@@ -32,11 +32,15 @@ public class PromptBuilder {
         this.objectMapper = objectMapper;
     }
 
+    /** С какого хода на одной стадии считаем, что диалог буксует. */
+    public static final int STALL_AFTER_TURNS = 2;
+
     public List<ChatMessage> build(DialogStage stage,
                                    SessionState state,
                                    RagContext ragContext,
                                    List<ChatMessage> history,
-                                   String userMessage) {
+                                   String userMessage,
+                                   boolean stalled) {
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(ChatMessage.system(template("system-base.md") + "\n\n" + template(stageTemplate(stage))));
 
@@ -51,6 +55,18 @@ public class PromptBuilder {
         } else {
             user.append("### КОНТЕКСТ СПРАВОЧНИКОВ\n")
                     .append("(пусто — данных по целевой роли в справочниках нет)\n\n");
+        }
+
+        if (stalled) {
+            user.append("""
+                    ### Диалог буксует
+                    Сессия уже несколько ходов стоит на этой стадии. Перечитай, что сотрудник
+                    написал выше: скорее всего ответ уже дан, а вопрос задаётся повторно.
+                    Повторять его нельзя. Если данных хватает — переходи на следующую стадию,
+                    назвав принятые допущения одной фразой. Если чего-то действительно
+                    не хватает — скажи прямо, чего именно, и спроси только это.
+
+                    """);
         }
 
         user.append("### Сообщение сотрудника\n")
