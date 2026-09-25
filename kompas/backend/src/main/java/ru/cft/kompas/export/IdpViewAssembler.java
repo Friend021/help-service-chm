@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import ru.cft.kompas.domain.Competency;
+import ru.cft.kompas.domain.DevelopmentAction;
 import ru.cft.kompas.domain.DevelopmentActivity;
 import ru.cft.kompas.domain.Employee;
 import ru.cft.kompas.domain.Idp;
@@ -65,23 +66,24 @@ public class IdpViewAssembler {
                                 : "целевой уровень " + competency.getTargetLevel()));
             }
 
-            List<IdpView.NamedRef> activityRefs = new ArrayList<>();
-            for (String code : priority.getActivityCodes()) {
-                DevelopmentActivity activity = activityByCode.get(code);
-                activityRefs.add(new IdpView.NamedRef(code,
-                        activity == null ? code : activity.getTitle(),
-                        activity == null ? null : activity.getSourceRef()));
+            List<IdpView.ActionView> actions = new ArrayList<>();
+            for (DevelopmentAction action : priority.getActions()) {
+                DevelopmentActivity activity = action.getActivityCode() == null
+                        ? null
+                        : activityByCode.get(action.getActivityCode());
+                actions.add(new IdpView.ActionView(
+                        action.getInstrument().getTitle(),
+                        action.getActivityCode(),
+                        activity == null ? null : activity.getTitle(),
+                        activity == null ? null : activity.getSourceRef(),
+                        action.getAction(),
+                        action.getDueDate() == null ? null : action.getDueDate().toString(),
+                        action.getStatus().getTitle()));
             }
-
-            List<IdpView.MilestoneView> milestones = priority.getMilestones().stream()
-                    .map(m -> new IdpView.MilestoneView(m.getTitle(),
-                            m.getDueDate() == null ? null : m.getDueDate().toString(),
-                            m.getStatus().name()))
-                    .toList();
 
             priorities.add(new IdpView.PriorityView(priority.getOrderNo(),
                     priority.getGoalCategory(),
-                    priority.getDevelopmentGoal(), competencyRefs, activityRefs, milestones));
+                    priority.getDevelopmentGoal(), competencyRefs, actions));
         }
 
         return new IdpView(idp.getId(),

@@ -18,8 +18,13 @@ export interface NamedRef {
   extra?: string | null;
 }
 
-export interface Milestone {
-  title: string;
+/** Строка блока «как развиваем» под целью — как в форме «ПЛАН РАЗВИТИЯ». */
+export interface DevelopmentAction {
+  instrument: string;
+  activityCode?: string | null;
+  activityName?: string | null;
+  source?: string | null;
+  action: string;
   dueDate?: string | null;
   status: string;
 }
@@ -29,8 +34,7 @@ export interface Priority {
   goalCategory?: string | null;
   developmentGoal: string;
   competencies: NamedRef[];
-  activities: NamedRef[];
-  milestones: Milestone[];
+  actions: DevelopmentAction[];
 }
 
 export interface Idp {
@@ -76,6 +80,10 @@ export interface PriorityPatch {
   goalCategory?: string | null;
   developmentGoal: string;
   competencyCodes: string[];
-  activityCodes: string[];
-  milestones: { title: string; dueDate?: string | null }[];
+  actions: {
+    instrument: string;
+    activityCode?: string | null;
+    action: string;
+    dueDate?: string | null;
+  }[];
 }

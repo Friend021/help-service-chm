@@ -97,23 +97,6 @@
                 <div class="goal">{{ priority.developmentGoal }}</div>
               }
 
-              @if (priority.milestones.length) {
-                <div class="milestones">
-                  <div class="milestones__title">Реперные точки</div>
-                  @for (milestone of priority.milestones; track $index; let m = $index) {
-                    <div class="milestone">
-                      <span>{{ milestone.title }}</span>
-                      @if (milestone.dueDate) {
-                        <span class="milestone__date">до {{ milestone.dueDate }}</span>
-                      }
-                      @if (editing()) {
-                        <button class="chip__remove" type="button"
-                                (click)="removeMilestone(i, m)">✕</button>
-                      }
-                    </div>
-                  }
-                </div>
-              }
             </td>
             <td>
               <div class="chips">
@@ -128,20 +111,48 @@
                 }
               </div>
 
-              @if (priority.activityNames.length) {
-                <div class="activities">
-                  <div class="activities__title">Развивающие активности</div>
-                  <div class="chips">
-                    @for (name of priority.activityNames; track $index; let a = $index) {
-                      <span class="chip chip--activity">
-                        {{ name }}
+              <!-- Блок «как развиваем»: колонки повторяют таблицу формы -->
+              @if (priority.actions.length) {
+                <div class="actions">
+                  <div class="actions__title">Как развиваем</div>
+                  @for (action of priority.actions; track $index; let a = $index) {
+                    <div class="action">
+                      <div class="action__head">
+                        @if (editing()) {
+                          <select class="action__instrument"
+                                  [(ngModel)]="action.instrument"
+                                  [ngModelOptions]="{standalone: true}">
+                            @for (option of instruments; track option) {
+                              <option [value]="option">{{ option }}</option>
+                            }
+                          </select>
+                        } @else {
+                          <span class="chip chip--instrument">{{ action.instrument }}</span>
+                        }
+                        <span class="action__status">{{ action.status }}</span>
                         @if (editing()) {
                           <button class="chip__remove" type="button"
-                                  (click)="removeActivity(i, priority.activityCodes[a])">✕</button>
+                                  (click)="removeAction(i, a)">✕</button>
                         }
-                      </span>
-                    }
-                  </div>
+                      </div>
+
+                      @if (editing()) {
+                        <input class="action__text" [(ngModel)]="action.action"
+                               [ngModelOptions]="{standalone: true}">
+                        <input class="action__date" type="date" [(ngModel)]="action.dueDate"
+                               [ngModelOptions]="{standalone: true}">
+                      } @else {
+                        <div class="action__text-view">{{ action.action }}</div>
+                        @if (action.dueDate) {
+                          <div class="action__date-view">до {{ action.dueDate }}</div>
+                        }
+                      }
+
+                      @if (action.activityName) {
+                        <div class="action__activity">{{ action.activityName }}</div>
+                      }
+                    </div>
+                  }
                 </div>
               }
             </td>

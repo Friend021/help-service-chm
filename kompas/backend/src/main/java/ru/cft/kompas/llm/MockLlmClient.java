@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.cft.kompas.domain.DevelopmentInstrument;
 
 /**
  * Детерминированная заглушка LLM для офлайн-профиля и тестов.
@@ -124,12 +125,21 @@ public class MockLlmClient implements LlmClient {
                     .append(escape("До %s выйти на целевой уровень по направлению \"%s\": закрыть не менее двух рабочих задач, где эта компетенция применяется, и получить обратную связь руководителя."
                             .formatted(base.plusMonths(3L * (i + 1)).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")), name)))
                     .append("\",\"competencyCodes\":[\"").append(escape(code)).append("\"]")
-                    .append(",\"activityCodes\":")
-                    .append(activity == null ? "[]" : "[\"" + escape(activity) + "\"]")
-                    .append(",\"milestones\":[{\"title\":\"")
-                    .append(escape("Промежуточная проверка: " + name))
+                    .append(",\"actions\":[")
+                    .append("{\"instrument\":\"")
+                    .append(escape(instrumentOf(prompt, activity)))
+                    .append("\",\"activityCode\":")
+                    .append(activity == null ? "null" : "\"" + escape(activity) + "\"")
+                    .append(",\"action\":\"")
+                    .append(escape("Применить на рабочих задачах: " + name))
                     .append("\",\"dueDate\":\"")
                     .append(base.plusMonths(3L * (i + 1)).minusMonths(1))
+                    .append("\"},{\"instrument\":\"")
+                    .append(escape(DevelopmentInstrument.WORKPLACE.getTitle()))
+                    .append("\",\"activityCode\":null,\"action\":\"")
+                    .append(escape("Получить обратную связь руководителя по направлению: " + name))
+                    .append("\",\"dueDate\":\"")
+                    .append(base.plusMonths(3L * (i + 1)))
                     .append("\"}]}");
         }
         draft.append("]}");
@@ -205,6 +215,24 @@ public class MockLlmClient implements LlmClient {
                 || text.contains("остаться")
                 || text.contains("не хочу")
                 || text.contains("не планирую");
+    }
+
+    /** Инструмент активности: в контексте он указан прямо в её строке. */
+    private static String instrumentOf(String prompt, String activityCode) {
+        if (activityCode != null) {
+            for (String line : prompt.split("\n")) {
+                if (!line.contains("[ACT:" + activityCode + "]") || !line.contains("инструмент:")) {
+                    continue;
+                }
+                String tail = line.substring(line.indexOf("инструмент:") + "инструмент:".length());
+                int end = tail.indexOf(',');
+                String title = (end < 0 ? tail : tail.substring(0, end)).trim();
+                if (DevelopmentInstrument.byTitle(title) != null) {
+                    return title;
+                }
+            }
+        }
+        return DevelopmentInstrument.WORKPLACE.getTitle();
     }
 
     /**

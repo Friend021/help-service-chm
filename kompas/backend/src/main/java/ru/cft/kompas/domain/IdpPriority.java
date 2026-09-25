@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,14 +40,11 @@ public class IdpPriority {
     @Column(name = "competency_codes", columnDefinition = "text")
     private List<String> competencyCodes = new ArrayList<>();
 
-    /** Коды активностей из каталога. */
-    @Convert(converter = CsvListConverter.class)
-    @Column(name = "activity_codes", columnDefinition = "text")
-    private List<String> activityCodes = new ArrayList<>();
-
+    /** Блок «как развиваем»: инструмент, конкретное действие, срок, статус. */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "idp_priority_id", nullable = false)
-    private List<Milestone> milestones = new ArrayList<>();
+    @OrderBy("orderNo asc")
+    private List<DevelopmentAction> actions = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -88,19 +86,11 @@ public class IdpPriority {
         this.competencyCodes = competencyCodes;
     }
 
-    public List<String> getActivityCodes() {
-        return activityCodes;
+    public List<DevelopmentAction> getActions() {
+        return actions;
     }
 
-    public void setActivityCodes(List<String> activityCodes) {
-        this.activityCodes = activityCodes;
-    }
-
-    public List<Milestone> getMilestones() {
-        return milestones;
-    }
-
-    public void setMilestones(List<Milestone> milestones) {
-        this.milestones = milestones;
+    public void setActions(List<DevelopmentAction> actions) {
+        this.actions = actions;
     }
 }

@@ -21,6 +21,9 @@ public class LegacyProperties {
     /** Предзаданные демо-сотрудники (demo-employees.yml). */
     private List<DemoEmployee> employees = new ArrayList<>();
 
+    /** Значения выпадающего списка «Инструмент развития». */
+    private List<String> instruments = new ArrayList<>();
+
     /** Значения выпадающего списка «Цели по развитию». */
     private List<String> goalCategories = new ArrayList<>();
 
@@ -54,6 +57,14 @@ public class LegacyProperties {
 
     public void setEmployees(List<DemoEmployee> employees) {
         this.employees = employees;
+    }
+
+    public List<String> getInstruments() {
+        return instruments;
+    }
+
+    public void setInstruments(List<String> instruments) {
+        this.instruments = instruments;
     }
 
     public List<String> getGoalCategories() {

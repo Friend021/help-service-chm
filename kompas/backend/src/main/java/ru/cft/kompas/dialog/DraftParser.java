@@ -8,6 +8,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import ru.cft.kompas.domain.DevelopmentInstrument;
 import ru.cft.kompas.domain.DialogStage;
 import ru.cft.kompas.reference.GoalCategoryCatalog;
 
@@ -69,12 +70,6 @@ public class DraftParser {
                 continue;
             }
             List<String> keptCompetencies = keep(priority.competencyCodes(), competencies, "компетенции");
-            List<String> keptActivities = keep(priority.activityCodes(), activities, "активности");
-            List<DraftDto.MilestoneDto> milestones = priority.milestones() == null
-                    ? List.of()
-                    : priority.milestones().stream()
-                            .filter(m -> m.title() != null && !m.title().isBlank())
-                            .toList();
 
             // Категория должна быть из справочника формы, иначе перенос туда не встанет
             String category = goalCategories.normalize(priority.goalCategory());
@@ -84,10 +79,51 @@ public class DraftParser {
             }
 
             result.add(new DraftDto.PriorityDto(order++, category, priority.developmentGoal().trim(),
-                    keptCompetencies, keptActivities, milestones));
+                    keptCompetencies, sanitizeActions(priority.actions(), activities)));
         }
 
         return new DraftDto(draft.targetRole(), result);
+    }
+
+    /**
+     * Развивающие действия приоритета.
+     *
+     * Инструмент обязан быть из справочника формы, иначе строка не встанет
+     * в её выпадающий список. Код активности — из RAG-контекста этого хода;
+     * чужой отбрасывается, но само действие остаётся: сотрудник вправе
+     * делать что-то своими словами, а не только по каталогу.
+     */
+    private List<DraftDto.ActionDto> sanitizeActions(List<DraftDto.ActionDto> actions,
+                                                     Set<String> allowedActivities) {
+        if (actions == null) {
+            return List.of();
+        }
+
+        List<DraftDto.ActionDto> kept = new ArrayList<>();
+        for (DraftDto.ActionDto action : actions) {
+            if (action.action() == null || action.action().isBlank()) {
+                continue;
+            }
+
+            DevelopmentInstrument instrument = DevelopmentInstrument.byTitle(action.instrument());
+            if (instrument == null) {
+                log.warn("Ассистент вернул инструмент развития «{}» вне справочника — ставлю «{}»",
+                        action.instrument(), DevelopmentInstrument.WORKPLACE.getTitle());
+                instrument = DevelopmentInstrument.WORKPLACE;
+            }
+
+            String code = normalizeCode(action.activityCode());
+            if (!code.isEmpty() && !allowedActivities.contains(code)) {
+                log.warn("Ассистент сослался на активность {} вне контекста — ссылка убрана", code);
+                code = "";
+            }
+
+            kept.add(new DraftDto.ActionDto(instrument.getTitle(),
+                    code.isEmpty() ? null : code,
+                    action.action().trim(),
+                    action.dueDate()));
+        }
+        return kept;
     }
 
     private List<String> keep(List<String> codes, Set<String> allowed, String what) {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.cft.kompas.config.KompasProperties;
 import ru.cft.kompas.domain.Competency;
 import ru.cft.kompas.domain.DevelopmentActivity;
+import ru.cft.kompas.domain.DevelopmentInstrument;
 import ru.cft.kompas.domain.JobPosition;
 import ru.cft.kompas.domain.PositionType;
 import ru.cft.kompas.domain.SourceType;
@@ -101,7 +102,8 @@ public class Retriever {
                 // активности вслепую, а не под конкретный разрыв.
                 text.append("- [ACT:").append(activity.getCode()).append("] ")
                         .append(activity.getTitle())
-                        .append(" (тип: ").append(activity.getType())
+                        .append(" (инструмент: ")
+                        .append(DevelopmentInstrument.of(activity.getType()).getTitle())
                         .append(", источник: ").append(activity.getSourceRef())
                         .append(", развивает: ")
                         .append(String.join(" ", activity.getRelatedCompetencyCodes()))

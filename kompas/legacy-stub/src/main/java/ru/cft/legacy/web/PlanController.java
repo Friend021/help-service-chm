@@ -38,6 +38,7 @@ public class PlanController {
         DemoEmployee employee = resolve(externalId);
         model.addAttribute("employees", properties.getEmployees());
         model.addAttribute("goalCategories", properties.getGoalCategories());
+        model.addAttribute("instruments", properties.getInstruments());
         model.addAttribute("employee", employee);
         model.addAttribute("today", LocalDate.now().format(DATE));
         return "plan";
@@ -55,6 +56,7 @@ public class PlanController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("employees", properties.getEmployees());
         model.addAttribute("goalCategories", properties.getGoalCategories());
+        model.addAttribute("instruments", properties.getInstruments());
             model.addAttribute("employee", resolve(null));
             model.addAttribute("today", LocalDate.now().format(DATE));
             model.addAttribute("importError", e.getMessage());
@@ -66,6 +68,7 @@ public class PlanController {
 
         model.addAttribute("employees", properties.getEmployees());
         model.addAttribute("goalCategories", properties.getGoalCategories());
+        model.addAttribute("instruments", properties.getInstruments());
         model.addAttribute("employee", resolve(plan.employeeExternalId()));
         model.addAttribute("today", plan.date() == null
                 ? LocalDate.now().format(DATE)

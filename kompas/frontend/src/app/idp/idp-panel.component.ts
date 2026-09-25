@@ -7,15 +7,22 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../core/api.service';
 import { Idp, Priority, PriorityPatch } from '../core/models';
 
+interface EditableAction {
+  instrument: string;
+  activityCode: string | null;
+  activityName: string | null;
+  action: string;
+  dueDate: string | null;
+  status: string;
+}
+
 interface EditablePriority {
   order: number;
   goalCategory: string | null;
   developmentGoal: string;
   competencyCodes: string[];
   competencyNames: string[];
-  activityCodes: string[];
-  activityNames: string[];
-  milestones: { title: string; dueDate: string | null }[];
+  actions: EditableAction[];
 }
 
 @Component({
@@ -105,34 +112,22 @@ export class IdpPanelComponent {
     );
   }
 
-  removeActivity(priorityIndex: number, code: string): void {
-    this.draft.update((items) =>
-      items.map((item, i) => {
-        if (i !== priorityIndex) {
-          return item;
-        }
-        const position = item.activityCodes.indexOf(code);
-        if (position < 0) {
-          return item;
-        }
-        return {
-          ...item,
-          activityCodes: item.activityCodes.filter((_, index) => index !== position),
-          activityNames: item.activityNames.filter((_, index) => index !== position)
-        };
-      })
-    );
-  }
-
-  removeMilestone(priorityIndex: number, milestoneIndex: number): void {
+  removeAction(priorityIndex: number, actionIndex: number): void {
     this.draft.update((items) =>
       items.map((item, i) =>
         i === priorityIndex
-          ? { ...item, milestones: item.milestones.filter((_, index) => index !== milestoneIndex) }
+          ? { ...item, actions: item.actions.filter((_, index) => index !== actionIndex) }
           : item
       )
     );
   }
+
+  /** Три значения выпадающего списка «Инструмент развития» формы. */
+  readonly instruments = [
+    'Развитие на рабочем месте',
+    'Развитие через других',
+    'Развитие через учебные программы'
+  ];
 
   save(): void {
     if (!this.current) {
@@ -145,10 +140,14 @@ export class IdpPanelComponent {
         goalCategory: item.goalCategory,
         developmentGoal: item.developmentGoal.trim(),
         competencyCodes: item.competencyCodes,
-        activityCodes: item.activityCodes,
-        milestones: item.milestones
-          .filter((milestone) => milestone.title.trim().length > 0)
-          .map((milestone) => ({ title: milestone.title.trim(), dueDate: milestone.dueDate }))
+        actions: item.actions
+          .filter((action) => action.action.trim().length > 0)
+          .map((action) => ({
+            instrument: action.instrument,
+            activityCode: action.activityCode,
+            action: action.action.trim(),
+            dueDate: action.dueDate
+          }))
       }));
 
     this.busy.set(true);
@@ -242,11 +241,13 @@ export class IdpPanelComponent {
       developmentGoal: priority.developmentGoal,
       competencyCodes: priority.competencies.map((item) => item.code),
       competencyNames: priority.competencies.map((item) => item.name),
-      activityCodes: priority.activities.map((item) => item.code),
-      activityNames: priority.activities.map((item) => item.name),
-      milestones: priority.milestones.map((item) => ({
-        title: item.title,
-        dueDate: item.dueDate ?? null
+      actions: priority.actions.map((item) => ({
+        instrument: item.instrument,
+        activityCode: item.activityCode ?? null,
+        activityName: item.activityName ?? null,
+        action: item.action,
+        dueDate: item.dueDate ?? null,
+        status: item.status
       }))
     }));
   }

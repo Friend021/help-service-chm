@@ -78,11 +78,29 @@ public class HandoverTokenIssuer {
             row.put("category", priority.goalCategory());
             row.put("goal", priority.developmentGoal());
             row.put("competencies", join(priority.competencies()));
-            row.put("activities", join(priority.activities()));
+            row.put("actions", actions(priority));
             rows.add(row);
             order++;
         }
         return rows;
+    }
+
+    /** Строки таблицы «как развиваем» под целью — колонки формы один в один. */
+    private static List<Map<String, Object>> actions(IdpView.PriorityView priority) {
+        List<Map<String, Object>> actions = new ArrayList<>();
+        int number = 1;
+        for (IdpView.ActionView action : priority.actions()) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("number", number++);
+            row.put("instrument", action.instrument());
+            row.put("action", action.activityName() == null
+                    ? action.action()
+                    : action.action() + " — " + action.activityName());
+            row.put("dueDate", action.dueDate() == null ? "" : action.dueDate());
+            row.put("status", action.status());
+            actions.add(row);
+        }
+        return actions;
     }
 
     private static String join(List<IdpView.NamedRef> refs) {

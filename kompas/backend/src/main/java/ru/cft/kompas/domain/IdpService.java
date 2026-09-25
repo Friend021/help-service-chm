@@ -84,17 +84,23 @@ public class IdpService {
             priority.setDevelopmentGoal(item.developmentGoal());
             priority.setCompetencyCodes(new ArrayList<>(
                     item.competencyCodes() == null ? List.of() : item.competencyCodes()));
-            priority.setActivityCodes(new ArrayList<>(
-                    item.activityCodes() == null ? List.of() : item.activityCodes()));
 
-            List<DraftDto.MilestoneDto> milestones =
-                    item.milestones() == null ? List.of() : item.milestones();
-            for (DraftDto.MilestoneDto milestoneDto : milestones) {
-                Milestone milestone = new Milestone();
-                milestone.setTitle(milestoneDto.title());
-                milestone.setDueDate(parseDate(milestoneDto.dueDate()));
-                milestone.setStatus(MilestoneStatus.PLANNED);
-                priority.getMilestones().add(milestone);
+            List<DraftDto.ActionDto> actions = item.actions() == null ? List.of() : item.actions();
+            int actionOrder = 1;
+            for (DraftDto.ActionDto actionDto : actions) {
+                if (actionDto.action() == null || actionDto.action().isBlank()) {
+                    continue;
+                }
+                DevelopmentAction action = new DevelopmentAction();
+                action.setOrderNo(actionOrder++);
+                action.setInstrument(DevelopmentInstrument.byTitle(actionDto.instrument()) == null
+                        ? DevelopmentInstrument.WORKPLACE
+                        : DevelopmentInstrument.byTitle(actionDto.instrument()));
+                action.setActivityCode(actionDto.activityCode());
+                action.setAction(actionDto.action().trim());
+                action.setDueDate(parseDate(actionDto.dueDate()));
+                action.setStatus(ActionStatus.NOT_STARTED);
+                priority.getActions().add(action);
             }
 
             idp.getPriorities().add(priority);
@@ -111,16 +117,17 @@ public class IdpService {
         }
         List<DraftDto.PriorityDto> priorities = new ArrayList<>();
         for (IdpPriority priority : idp.getPriorities()) {
-            List<DraftDto.MilestoneDto> milestones = priority.getMilestones().stream()
-                    .map(m -> new DraftDto.MilestoneDto(m.getTitle(),
-                            m.getDueDate() == null ? null : m.getDueDate().toString()))
+            List<DraftDto.ActionDto> actions = priority.getActions().stream()
+                    .map(a -> new DraftDto.ActionDto(a.getInstrument().getTitle(),
+                            a.getActivityCode(),
+                            a.getAction(),
+                            a.getDueDate() == null ? null : a.getDueDate().toString()))
                     .toList();
             priorities.add(new DraftDto.PriorityDto(priority.getOrderNo(),
                     priority.getGoalCategory(),
                     priority.getDevelopmentGoal(),
                     List.copyOf(priority.getCompetencyCodes()),
-                    List.copyOf(priority.getActivityCodes()),
-                    milestones));
+                    actions));
         }
         return new DraftDto(targetRoleTitle, priorities);
     }

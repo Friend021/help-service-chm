@@ -24,8 +24,8 @@ class MockLlmClientTest {
             - [COMP:LJD-01] Проектирование компонентов и API (целевой уровень 3). Описание.
             - [COMP:LJD-02] Java-платформа и производительность (целевой уровень 3). Описание.
             ### Каталог развивающих активностей
-            - [ACT:ACT-001] Внутренний курс (тип: COURSE, источник: Учебный центр, развивает: LJD-01). Описание.
-            - [ACT:ACT-004] Воркшоп по JVM (тип: COURSE, источник: Учебный центр, развивает: LJD-02). Описание.
+            - [ACT:ACT-001] Внутренний курс (инструмент: Развитие через учебные программы, источник: Учебный центр, развивает: LJD-01). Описание.
+            - [ACT:ACT-004] Воркшоп по JVM (инструмент: Развитие через учебные программы, источник: Учебный центр, развивает: LJD-02). Описание.
 
             ### Сообщение сотрудника
             Да, всё верно.
@@ -59,7 +59,9 @@ class MockLlmClientTest {
                 .allSatisfy(priority -> {
                     assertThat(priority.developmentGoal()).isNotBlank();
                     assertThat(priority.competencyCodes()).isSubsetOf("LJD-01", "LJD-02");
-                    assertThat(priority.activityCodes()).isSubsetOf("ACT-001", "ACT-004");
+                    assertThat(priority.actions()).isNotEmpty();
+                    assertThat(priority.actions())
+                            .allSatisfy(a -> assertThat(a.action()).isNotBlank());
                 });
     }
 
@@ -76,7 +78,8 @@ class MockLlmClientTest {
                 .allSatisfy(priority -> {
                     // ACT-001 развивает LJD-01, ACT-004 — LJD-02
                     String expected = priority.competencyCodes().contains("LJD-01") ? "ACT-001" : "ACT-004";
-                    assertThat(priority.activityCodes()).containsExactly(expected);
+                    assertThat(priority.actions())
+                            .anySatisfy(a -> assertThat(a.activityCode()).isEqualTo(expected));
                 });
     }
 

@@ -33,18 +33,15 @@ class DraftParserTest {
     void не_ломается_на_фигурных_скобках_внутри_строк() {
         String raw = "{\"message\":\"текст со скобкой } внутри\",\"nextStage\":\"DRAFT\",\"draft\":null}";
 
-        AssistantEnvelope envelope = parser.parse(raw, DialogStage.CONTEXT);
-
-        assertThat(envelope.message()).isEqualTo("текст со скобкой } внутри");
+        assertThat(parser.parse(raw, DialogStage.CONTEXT).message())
+                .isEqualTo("текст со скобкой } внутри");
     }
 
     @Test
     void неизвестная_стадия_не_двигает_диалог() {
         String raw = "{\"message\":\"ок\",\"nextStage\":\"НЕПОНЯТНО\",\"draft\":null}";
 
-        AssistantEnvelope envelope = parser.parse(raw, DialogStage.INTERESTS);
-
-        assertThat(envelope.nextStage()).isEqualTo("INTERESTS");
+        assertThat(parser.parse(raw, DialogStage.INTERESTS).nextStage()).isEqualTo("INTERESTS");
     }
 
     @Test
@@ -52,9 +49,7 @@ class DraftParserTest {
         String raw = "{\"message\":\"Переключился\",\"nextStage\":\"GAP_ANALYSIS\","
                 + "\"targetRole\":\"Архитектор решений\",\"draft\":null}";
 
-        AssistantEnvelope envelope = parser.parse(raw, DialogStage.CONTEXT);
-
-        assertThat(envelope.targetRole()).isEqualTo("Архитектор решений");
+        assertThat(parser.parse(raw, DialogStage.CONTEXT).targetRole()).isEqualTo("Архитектор решений");
     }
 
     @Test
@@ -78,39 +73,60 @@ class DraftParserTest {
 
     @Test
     void коды_вне_контекста_отбрасываются() {
-        DraftDto draft = new DraftDto("Ведущий разработчик Java", List.of(
-                new DraftDto.PriorityDto(1, "Адаптация к должности", "Цель по SMART",
-                        List.of("LJD-01", "ВЫДУМАННАЯ"),
-                        List.of("ACT-001", "ACT-999"),
-                        List.of(new DraftDto.MilestoneDto("Точка", "2026-12-31")))));
+        DraftDto draft = draftWith(priority(List.of("LJD-01", "ВЫДУМАННАЯ"),
+                action("Развитие на рабочем месте", "ACT-001", "Спроектировать API"),
+                action("Развитие на рабочем месте", "ACT-999", "Сделать что-то ещё")));
 
         DraftDto result = parser.sanitize(draft, List.of("LJD-01"), List.of("ACT-001"));
 
-        assertThat(result.priorities()).hasSize(1);
-        assertThat(result.priorities().get(0).competencyCodes()).containsExactly("LJD-01");
-        assertThat(result.priorities().get(0).activityCodes()).containsExactly("ACT-001");
+        DraftDto.PriorityDto kept = result.priorities().get(0);
+        assertThat(kept.competencyCodes()).containsExactly("LJD-01");
+        assertThat(kept.actions()).hasSize(2);
+        assertThat(kept.actions().get(0).activityCode()).isEqualTo("ACT-001");
+        assertThat(kept.actions().get(1).activityCode())
+                .as("ссылка на активность вне контекста снимается, само действие остаётся")
+                .isNull();
     }
 
     @Test
     void коды_с_префиксом_из_контекста_принимаются() {
-        DraftDto draft = new DraftDto("Архитектор решений", List.of(
-                new DraftDto.PriorityDto(1, "Адаптация к должности", "Цель по SMART",
-                        List.of("COMP:ARC-03", "[COMP:ARC-06]"),
-                        List.of("ACT:ACT-017", "[ACT:ACT-010]"),
-                        List.of())));
+        DraftDto draft = draftWith(priority(List.of("COMP:ARC-03", "[COMP:ARC-06]"),
+                action("Развитие через других", "[ACT:ACT-022]", "Выступить на митапе")));
 
-        DraftDto result = parser.sanitize(draft,
-                List.of("ARC-03", "ARC-06"), List.of("ACT-017", "ACT-010"));
+        DraftDto result = parser.sanitize(draft, List.of("ARC-03", "ARC-06"), List.of("ACT-022"));
 
         assertThat(result.priorities().get(0).competencyCodes()).containsExactly("ARC-03", "ARC-06");
-        assertThat(result.priorities().get(0).activityCodes()).containsExactly("ACT-017", "ACT-010");
+        assertThat(result.priorities().get(0).actions().get(0).activityCode()).isEqualTo("ACT-022");
+    }
+
+    @Test
+    void инструмент_вне_справочника_формы_заменяется_безопасным() {
+        DraftDto draft = draftWith(priority(List.of(),
+                action("Самообучение по вечерам", null, "Читать статьи")));
+
+        DraftDto result = parser.sanitize(draft, List.of(), List.of());
+
+        assertThat(result.priorities().get(0).actions().get(0).instrument())
+                .isEqualTo("Развитие на рабочем месте");
+    }
+
+    @Test
+    void действия_без_текста_отбрасываются() {
+        DraftDto draft = draftWith(priority(List.of(),
+                action("Развитие на рабочем месте", null, "  "),
+                action("Развитие через других", null, "Разобрать решение с наставником")));
+
+        DraftDto result = parser.sanitize(draft, List.of(), List.of());
+
+        assertThat(result.priorities().get(0).actions()).hasSize(1);
+        assertThat(result.priorities().get(0).actions().get(0).action())
+                .isEqualTo("Разобрать решение с наставником");
     }
 
     @Test
     void категория_цели_вне_справочника_формы_отбрасывается() {
-        DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, "Профессиональный рост", "Цель",
-                        List.of(), List.of(), List.of())));
+        DraftDto draft = draftWith(new DraftDto.PriorityDto(
+                1, "Профессиональный рост", "Цель", List.of(), List.of()));
 
         DraftDto result = parser.sanitize(draft, List.of(), List.of());
 
@@ -121,9 +137,8 @@ class DraftParserTest {
 
     @Test
     void категория_из_справочника_нормализуется_по_регистру() {
-        DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, "  адаптация К ДОЛЖНОСТИ ", "Цель",
-                        List.of(), List.of(), List.of())));
+        DraftDto draft = draftWith(new DraftDto.PriorityDto(
+                1, "  адаптация К ДОЛЖНОСТИ ", "Цель", List.of(), List.of()));
 
         DraftDto result = parser.sanitize(draft, List.of(), List.of());
 
@@ -133,13 +148,27 @@ class DraftParserTest {
     @Test
     void приоритеты_без_цели_отбрасываются_и_нумерация_сквозная() {
         DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, null, "  ", List.of(), List.of(), List.of()),
-                new DraftDto.PriorityDto(7, null, "Вторая цель", List.of("LJD-01"), List.of(), List.of())));
+                new DraftDto.PriorityDto(1, null, "  ", List.of(), List.of()),
+                new DraftDto.PriorityDto(7, null, "Вторая цель", List.of("LJD-01"), List.of())));
 
         DraftDto result = parser.sanitize(draft, List.of("LJD-01"), List.of());
 
         assertThat(result.priorities()).hasSize(1);
         assertThat(result.priorities().get(0).order()).isEqualTo(1);
         assertThat(result.priorities().get(0).developmentGoal()).isEqualTo("Вторая цель");
+    }
+
+    private static DraftDto draftWith(DraftDto.PriorityDto... priorities) {
+        return new DraftDto("Ведущий разработчик Java", List.of(priorities));
+    }
+
+    private static DraftDto.PriorityDto priority(List<String> competencies,
+                                                 DraftDto.ActionDto... actions) {
+        return new DraftDto.PriorityDto(1, "Адаптация к должности", "Цель по SMART",
+                competencies, List.of(actions));
+    }
+
+    private static DraftDto.ActionDto action(String instrument, String activityCode, String text) {
+        return new DraftDto.ActionDto(instrument, activityCode, text, "2026-12-31");
     }
 }

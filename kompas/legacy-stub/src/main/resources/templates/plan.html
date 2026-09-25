@@ -91,12 +91,10 @@
                                     th:selected="${c == row.category}"></option>
                         </select>
                     </td>
-                    <!-- Свободная колонка: компетенции, сама цель по SMART и активности -->
+                    <!-- Свободная колонка: компетенции и сама цель по SMART -->
                     <td>
                         <div class="cell-competencies" th:text="${row.competencies}"></div>
                         <div class="cell-goal" th:text="${row.goal}"></div>
-                        <div class="cell-activities" th:if="${!#strings.isEmpty(row.activities)}"
-                             th:text="'Активности: ' + ${row.activities}"></div>
                     </td>
                     <td class="cell-actions">
                         <button th:unless="${it.first}" type="button" class="remove-row"
@@ -152,6 +150,63 @@
                 </tr>
                 </tfoot>
             </table>
+
+            <!-- Блок развивающих действий под каждой целью.
+                 th:each выполняется раньше th:if, поэтому условие вынесено наружу. -->
+            <div th:if="${imported}">
+            <div th:each="row : ${imported.rows}">
+                <h2 class="section-title" th:text="${row.title}">Что развиваем</h2>
+                <table class="actions-table">
+                    <colgroup>
+                        <col class="col-num">
+                        <col class="col-instrument">
+                        <col class="col-action">
+                        <col class="col-due">
+                        <col class="col-status">
+                        <col class="col-comment">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Инструмент развития<br>(как развиваем)</th>
+                        <th>Конкретное действие</th>
+                        <th>Планируемый<br>срок реализации</th>
+                        <th>Статус<br>выполнения</th>
+                        <th>Комментарий сотрудника</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="act : ${row.actions}">
+                        <td class="cell-priority" th:text="${act.number}">1</td>
+                        <td>
+                            <select class="goal-select">
+                                <option value=""></option>
+                                <option th:each="ins : ${instruments}" th:text="${ins}"
+                                        th:selected="${ins == act.instrument}"></option>
+                            </select>
+                        </td>
+                        <td th:text="${act.action}"></td>
+                        <td class="cell-due" th:text="${act.dueDate}"></td>
+                        <td class="cell-status" th:text="${act.status}">Не начато</td>
+                        <td></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(row.actions)}">
+                        <td class="cell-priority">1</td>
+                        <td>
+                            <select class="goal-select">
+                                <option value=""></option>
+                                <option th:each="ins : ${instruments}" th:text="${ins}"></option>
+                            </select>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td class="cell-status">Не начато</td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
 
             <!-- A.6 Кнопки -->
             <div class="actions">

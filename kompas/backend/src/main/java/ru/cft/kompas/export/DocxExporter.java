@@ -37,34 +37,14 @@ public class DocxExporter {
             heading(document, "Приоритеты развития");
             prioritiesTable(document, view);
 
-            heading(document, "Развивающие активности");
+            // Под каждой целью — своя таблица «как развиваем», как в самой форме
             for (IdpView.PriorityView priority : view.priorities()) {
-                XWPFParagraph header = document.createParagraph();
-                bold(header, "Приоритет " + priority.order());
-                if (priority.activities().isEmpty()) {
-                    plain(document.createParagraph(), "Активности не выбраны.");
+                heading(document, "Приоритет " + priority.order() + ". " + competencyNames(priority));
+                if (priority.actions().isEmpty()) {
+                    plain(document.createParagraph(), "Развивающие действия не заданы.");
+                    continue;
                 }
-                for (IdpView.NamedRef activity : priority.activities()) {
-                    XWPFParagraph line = document.createParagraph();
-                    line.setIndentationLeft(360);
-                    plain(line, "— " + activity.name()
-                            + (activity.extra() == null ? "" : " (" + activity.extra() + ")"));
-                }
-            }
-
-            heading(document, "Реперные точки");
-            for (IdpView.PriorityView priority : view.priorities()) {
-                XWPFParagraph header = document.createParagraph();
-                bold(header, "Приоритет " + priority.order());
-                if (priority.milestones().isEmpty()) {
-                    plain(document.createParagraph(), "Реперные точки не заданы.");
-                }
-                for (IdpView.MilestoneView milestone : priority.milestones()) {
-                    XWPFParagraph line = document.createParagraph();
-                    line.setIndentationLeft(360);
-                    plain(line, "— " + milestone.title()
-                            + (milestone.dueDate() == null ? "" : ", срок: " + milestone.dueDate()));
-                }
+                actionsTable(document, priority);
             }
 
             document.write(output);
@@ -96,6 +76,40 @@ public class DocxExporter {
                     : String.join("; ", priority.competencies().stream()
                             .map(IdpView.NamedRef::name).toList()));
         }
+    }
+
+    /** Таблица развивающих действий приоритета — колонки как в форме. */
+    private void actionsTable(XWPFDocument document, IdpView.PriorityView priority) {
+        XWPFTable table = document.createTable(priority.actions().size() + 1, 5);
+        table.setWidth("100%");
+
+        XWPFTableRow head = table.getRow(0);
+        headerCell(head, 0, "№");
+        headerCell(head, 1, "Инструмент развития");
+        headerCell(head, 2, "Конкретное действие");
+        headerCell(head, 3, "Планируемый срок");
+        headerCell(head, 4, "Статус выполнения");
+
+        int rowIndex = 1;
+        int number = 1;
+        for (IdpView.ActionView action : priority.actions()) {
+            XWPFTableRow row = table.getRow(rowIndex++);
+            cell(row, 0, String.valueOf(number++));
+            cell(row, 1, nvl(action.instrument()));
+            cell(row, 2, action.activityName() == null
+                    ? nvl(action.action())
+                    : action.action() + "\n" + action.activityName()
+                            + (action.source() == null ? "" : " (" + action.source() + ")"));
+            cell(row, 3, nvl(action.dueDate()));
+            cell(row, 4, nvl(action.status()));
+        }
+    }
+
+    private static String competencyNames(IdpView.PriorityView priority) {
+        return priority.competencies().isEmpty()
+                ? nvl(priority.goalCategory())
+                : String.join("; ", priority.competencies().stream()
+                        .map(IdpView.NamedRef::name).toList());
     }
 
     private void headerCell(XWPFTableRow row, int index, String text) {

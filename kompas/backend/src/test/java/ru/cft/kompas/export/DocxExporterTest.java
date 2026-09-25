@@ -21,9 +21,9 @@ class DocxExporterTest {
                 List.of(new IdpView.PriorityView(1, "Адаптация к должности", "Цель по SMART до 31.12.2026",
                         List.of(new IdpView.NamedRef("LJD-01", "Проектирование компонентов и API",
                                 "целевой уровень 3")),
-                        List.of(new IdpView.NamedRef("ACT-001", "Внутренний курс", "Учебный центр ЦФТ")),
-                        List.of(new IdpView.MilestoneView("Промежуточная проверка", "2026-11-30",
-                                "PLANNED")))));
+                        List.of(new IdpView.ActionView("Развитие через учебные программы", "ACT-001",
+                                "Внутренний курс", "Учебный центр ЦФТ",
+                                "Пройти курс и защитить учебный проект", "2026-11-30", "Не начато")))));
 
         byte[] bytes = exporter.export(view);
 
@@ -35,19 +35,30 @@ class DocxExporterTest {
             assertThat(text).contains("Индивидуальный план развития");
             assertThat(text).contains("Соколова Анна Дмитриевна");
             assertThat(text).contains("Ведущий разработчик Java");
-            assertThat(text).contains("Внутренний курс");
-            assertThat(text).contains("Промежуточная проверка");
 
-            assertThat(document.getTables()).hasSize(1);
-            XWPFTable table = document.getTables().get(0);
-            assertThat(table.getRow(0).getCell(0).getText()).isEqualTo("Приоритет");
-            assertThat(table.getRow(0).getCell(2).getText()).isEqualTo("Что развиваем?");
+            // Первая таблица — «Приоритеты развития», как в форме
+            assertThat(document.getTables()).hasSize(2);
+            XWPFTable priorities = document.getTables().get(0);
+            assertThat(priorities.getRow(0).getCell(0).getText()).isEqualTo("Приоритет");
+            assertThat(priorities.getRow(0).getCell(2).getText()).isEqualTo("Что развиваем?");
             // В форме эта колонка — выпадающий список: сначала категория, под ней цель
-            assertThat(table.getRow(1).getCell(1).getText())
+            assertThat(priorities.getRow(1).getCell(1).getText())
                     .contains("Адаптация к должности")
                     .contains("Цель по SMART до 31.12.2026");
-            assertThat(table.getRow(1).getCell(2).getText())
+            assertThat(priorities.getRow(1).getCell(2).getText())
                     .isEqualTo("Проектирование компонентов и API");
+
+            // Вторая — блок «как развиваем» под этим приоритетом
+            XWPFTable actions = document.getTables().get(1);
+            assertThat(actions.getRow(0).getCell(1).getText()).isEqualTo("Инструмент развития");
+            assertThat(actions.getRow(0).getCell(4).getText()).isEqualTo("Статус выполнения");
+            assertThat(actions.getRow(1).getCell(1).getText())
+                    .isEqualTo("Развитие через учебные программы");
+            assertThat(actions.getRow(1).getCell(2).getText())
+                    .contains("Пройти курс и защитить учебный проект")
+                    .contains("Внутренний курс");
+            assertThat(actions.getRow(1).getCell(3).getText()).isEqualTo("2026-11-30");
+            assertThat(actions.getRow(1).getCell(4).getText()).isEqualTo("Не начато");
         }
     }
 

@@ -45,7 +45,6 @@ class HandoverTokenIssuerTest {
         assertThat(rows.get(0).get("order")).isEqualTo(1);
         assertThat(rows.get(0).get("goal")).isEqualTo("Первая цель");
         assertThat(rows.get(0).get("competencies")).isEqualTo("Нефункциональные требования");
-        assertThat(rows.get(0).get("activities")).isEqualTo("Нагрузочное тестирование");
 
         assertThat(rows.get(1).get("order")).isEqualTo(2);
         assertThat(rows.get(1).get("competencies"))
@@ -53,15 +52,33 @@ class HandoverTokenIssuerTest {
     }
 
     @Test
-    void план_без_активностей_переносится_с_пустой_колонкой() {
+    void развивающие_действия_переносятся_строками_таблицы_формы() {
+        Claims claims = parse(issuer.issueUrl(view()));
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> rows = claims.get("priorities", List.class);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> actions = (List<Map<String, Object>>) rows.get(0).get("actions");
+
+        assertThat(actions).hasSize(1);
+        assertThat(actions.get(0).get("number")).isEqualTo(1);
+        assertThat(actions.get(0).get("instrument")).isEqualTo("Развитие на рабочем месте");
+        assertThat(actions.get(0).get("action"))
+                .isEqualTo("Провести нагрузочное тестирование — Нагрузочное тестирование");
+        assertThat(actions.get(0).get("dueDate")).isEqualTo("2026-12-31");
+        assertThat(actions.get(0).get("status")).isEqualTo("Не начато");
+    }
+
+    @Test
+    void план_без_действий_переносится_с_пустой_таблицей() {
         IdpView bare = new IdpView(7L, LocalDate.of(2026, 9, 25), "DRAFT", "emp-001", "Сотрудник",
                 "Руководитель", "Разработчик Java", "Ведущий разработчик Java",
-                List.of(new IdpView.PriorityView(1, null, "Цель", List.of(), List.of(), List.of())));
+                List.of(new IdpView.PriorityView(1, null, "Цель", List.of(), List.of())));
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> rows = parse(issuer.issueUrl(bare)).get("priorities", List.class);
 
-        assertThat(rows.get(0).get("activities")).isEqualTo("");
+        assertThat((List<?>) rows.get(0).get("actions")).isEmpty();
     }
 
     private Claims parse(String url) {
@@ -82,11 +99,13 @@ class HandoverTokenIssuerTest {
                         new IdpView.PriorityView(2, "Изучение продуктов", "Вторая цель",
                                 List.of(new IdpView.NamedRef("ARC-06", "Влияние и переговоры", null),
                                         new IdpView.NamedRef("ARC-01", "Архитектура прикладных решений", null)),
-                                List.of(), List.of()),
+                                List.of()),
                         new IdpView.PriorityView(1, "Адаптация к должности", "Первая цель",
                                 List.of(new IdpView.NamedRef("ARC-03", "Нефункциональные требования", null)),
-                                List.of(new IdpView.NamedRef("ACT-017", "Нагрузочное тестирование", null)),
-                                List.of())));
+                                List.of(new IdpView.ActionView("Развитие на рабочем месте", "ACT-017",
+                                        "Нагрузочное тестирование", "Рабочие задачи команды",
+                                        "Провести нагрузочное тестирование", "2026-12-31",
+                                        "Не начато")))));
     }
 
     private static KompasProperties properties() {

@@ -47,14 +47,17 @@ class IdpServiceTest {
     }
 
     @Test
-    void черновик_раскладывается_в_приоритеты_с_реперными_точками() {
+    void черновик_раскладывается_в_приоритеты_с_развивающими_действиями() {
         Idp idp = new Idp();
         idp.setTargetRoleId(10L);
 
         DraftDto draft = new DraftDto("Ведущий разработчик Java", List.of(
                 new DraftDto.PriorityDto(1, "Адаптация к должности", "Цель по SMART",
-                        List.of("LJD-01"), List.of("ACT-002"),
-                        List.of(new DraftDto.MilestoneDto("Точка", "2026-11-30")))));
+                        List.of("LJD-01"),
+                        List.of(new DraftDto.ActionDto("Развитие через учебные программы",
+                                        "ACT-001", "Пройти курс", "2026-10-31"),
+                                new DraftDto.ActionDto("Развитие на рабочем месте",
+                                        null, "Спроектировать API", "2026-11-30")))));
 
         Idp result = service.applyDraft(idp, draft, 10L);
 
@@ -62,24 +65,47 @@ class IdpServiceTest {
         IdpPriority priority = result.getPriorities().get(0);
         assertThat(priority.getOrderNo()).isEqualTo(1);
         assertThat(priority.getCompetencyCodes()).containsExactly("LJD-01");
-        assertThat(priority.getActivityCodes()).containsExactly("ACT-002");
-        assertThat(priority.getMilestones()).hasSize(1);
-        assertThat(priority.getMilestones().get(0).getDueDate().toString()).isEqualTo("2026-11-30");
-        assertThat(priority.getMilestones().get(0).getStatus()).isEqualTo(MilestoneStatus.PLANNED);
+        assertThat(priority.getActions()).hasSize(2);
+
+        DevelopmentAction first = priority.getActions().get(0);
+        assertThat(first.getOrderNo()).isEqualTo(1);
+        assertThat(first.getInstrument()).isEqualTo(DevelopmentInstrument.LEARNING);
+        assertThat(first.getActivityCode()).isEqualTo("ACT-001");
+        assertThat(first.getDueDate().toString()).isEqualTo("2026-10-31");
+        assertThat(first.getStatus())
+                .as("новый план всегда начинается со статуса «Не начато»")
+                .isEqualTo(ActionStatus.NOT_STARTED);
+
+        assertThat(priority.getActions().get(1).getInstrument())
+                .isEqualTo(DevelopmentInstrument.WORKPLACE);
     }
 
     @Test
-    void некорректная_дата_реперной_точки_не_ломает_применение() {
+    void некорректная_дата_действия_не_ломает_применение() {
         Idp idp = new Idp();
 
         DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, null, "Цель",
-                        List.of(), List.of(),
-                        List.of(new DraftDto.MilestoneDto("Точка", "как-нибудь в декабре")))));
+                new DraftDto.PriorityDto(1, null, "Цель", List.of(),
+                        List.of(new DraftDto.ActionDto("Развитие на рабочем месте",
+                                null, "Действие", "как-нибудь в декабре")))));
 
         Idp result = service.applyDraft(idp, draft, 10L);
 
-        assertThat(result.getPriorities().get(0).getMilestones().get(0).getDueDate()).isNull();
+        assertThat(result.getPriorities().get(0).getActions().get(0).getDueDate()).isNull();
+    }
+
+    @Test
+    void неизвестный_инструмент_приводится_к_работе_на_месте() {
+        Idp idp = new Idp();
+
+        DraftDto draft = new DraftDto("Роль", List.of(
+                new DraftDto.PriorityDto(1, null, "Цель", List.of(),
+                        List.of(new DraftDto.ActionDto("Что-то своё", null, "Действие", null)))));
+
+        Idp result = service.applyDraft(idp, draft, 10L);
+
+        assertThat(result.getPriorities().get(0).getActions().get(0).getInstrument())
+                .isEqualTo(DevelopmentInstrument.WORKPLACE);
     }
 
     @Test
@@ -88,7 +114,7 @@ class IdpServiceTest {
         idp.setStatus(IdpStatus.ON_APPROVAL);
 
         DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, null, "Новая цель", List.of(), List.of(), List.of())));
+                new DraftDto.PriorityDto(1, null, "Новая цель", List.of(), List.of())));
 
         Idp result = service.applyDraft(idp, draft, 10L);
 

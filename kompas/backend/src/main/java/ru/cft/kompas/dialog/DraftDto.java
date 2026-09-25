@@ -7,16 +7,24 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DraftDto(String targetRole, List<PriorityDto> priorities) {
 
+    /** Строка блока «Приоритеты развития» вместе со своими развивающими действиями. */
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record PriorityDto(Integer order,
                               String goalCategory,
                               String developmentGoal,
                               List<String> competencyCodes,
-                              List<String> activityCodes,
-                              List<MilestoneDto> milestones) {
+                              List<ActionDto> actions) {
     }
 
+    /**
+     * Строка таблицы «как развиваем» под целью: инструмент, конкретное действие,
+     * планируемый срок. Статус проставляет сервис — в новом плане он всегда
+     * «Не начато».
+     */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record MilestoneDto(String title, String dueDate) {
+    public record ActionDto(String instrument,
+                            String activityCode,
+                            String action,
+                            String dueDate) {
     }
 }
