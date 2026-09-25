@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>План развития</title>
+    <link rel="stylesheet" th:href="@{/css/plan.css}">
+</head>
+<body>
+
+<!-- A.2 Красная шапка -->
+<div class="header">
+    <span class="header__title">План развития</span>
+    <span class="header__label">Вы зашли как</span>
+    <!-- Белое поле из оригинала: в макете это переключатель демо-сотрудника -->
+    <select class="header__user" id="employeePicker"
+            onchange="location.href='/?employee=' + encodeURIComponent(this.value);">
+        <option th:each="e : ${employees}"
+                th:value="${e.externalId}"
+                th:text="${e.fullName}"
+                th:selected="${e.externalId == employee.externalId}"></option>
+    </select>
+</div>
+
+<div class="layout">
+    <!-- A.3 Боковое меню -->
+    <aside class="sidebar">
+        <div class="sidebar__item">
+            <span class="sidebar__marker"></span>
+            <span>Создать ИПР</span>
+        </div>
+    </aside>
+
+    <main class="main">
+        <!-- A.4 Карточка -->
+        <section class="card">
+            <h1 class="card__title">Создать план развития</h1>
+
+            <div class="card__head">
+                <div class="meta">
+                    <div class="meta__row">
+                        <span class="meta__label">Дата составления:</span>
+                        <span class="meta__value" th:text="${today}">22.09.2026</span>
+                    </div>
+                    <div class="meta__row">
+                        <span class="meta__label">Сотрудник:</span>
+                        <span class="meta__value" th:text="${employee.fullName}">—</span>
+                    </div>
+                    <div class="meta__row">
+                        <span class="meta__label">Руководитель:</span>
+                        <span class="meta__value" th:text="${employee.managerFullName}">—</span>
+                    </div>
+                </div>
+                <a class="link" href="#" onclick="return false;">Карта развивающих действий</a>
+            </div>
+
+            <h2 class="section-title">Приоритеты развития</h2>
+
+            <!-- A.5 Таблица приоритетов -->
+            <table class="priorities" id="priorities">
+                <colgroup>
+                    <col class="col-priority">
+                    <col class="col-goal">
+                    <col class="col-what">
+                    <col class="col-actions">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>Приоритет</th>
+                    <th>Цели по развитию</th>
+                    <th>Что развиваем?</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="prioritiesBody">
+                <tr>
+                    <td class="cell-priority">1</td>
+                    <td>
+                        <select class="goal-select">
+                            <option value=""></option>
+                            <option>Профессиональное развитие</option>
+                            <option>Управленческое развитие</option>
+                            <option>Развитие в смежной области</option>
+                        </select>
+                    </td>
+                    <td></td>
+                    <td class="cell-actions"></td>
+                </tr>
+                <tr>
+                    <td class="cell-priority">2</td>
+                    <td>
+                        <select class="goal-select">
+                            <option value=""></option>
+                            <option>Профессиональное развитие</option>
+                            <option>Управленческое развитие</option>
+                            <option>Развитие в смежной области</option>
+                        </select>
+                    </td>
+                    <td></td>
+                    <td class="cell-actions">
+                        <button type="button" class="remove-row" title="Удалить строку">&#10006;</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell-priority">3</td>
+                    <td>
+                        <select class="goal-select">
+                            <option value=""></option>
+                            <option>Профессиональное развитие</option>
+                            <option>Управленческое развитие</option>
+                            <option>Развитие в смежной области</option>
+                        </select>
+                    </td>
+                    <td></td>
+                    <td class="cell-actions">
+                        <button type="button" class="remove-row" title="Удалить строку">&#10006;</button>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td class="add-row-cell" colspan="4">
+                        <button type="button" class="add-row" id="addRow">Добавить строку</button>
+                    </td>
+                </tr>
+                </tfoot>
+            </table>
+
+            <!-- A.6 Кнопки -->
+            <div class="actions">
+                <button type="button" class="btn btn--primary"
+                        onclick="alert('Заглушка старого сервиса: ИПР создаётся вручную.');">
+                    Создать ИПР
+                </button>
+                <!-- Единственный «живой» элемент: переход в «Компас» (раздел 8 ТЗ) -->
+                <a class="btn btn--kompas"
+                   th:href="@{/kompas(employee=${employee.externalId})}">
+                    Сформировать с помощью Компаса
+                </a>
+            </div>
+        </section>
+
+        <!-- A.7 Футер -->
+        <div class="footer">© Отдел внутрикорпоративных проектов, УВА</div>
+    </main>
+</div>
+
+<script>
+    (function () {
+        var body = document.getElementById('prioritiesBody');
+
+        function renumber() {
+            Array.prototype.forEach.call(body.rows, function (row, index) {
+                row.cells[0].textContent = String(index + 1);
+                var button = row.cells[3].querySelector('.remove-row');
+                // Первую строку не удаляем (п. A.5)
+                if (index === 0 && button) {
+                    button.remove();
+                }
+            });
+        }
+
+        body.addEventListener('click', function (event) {
+            if (!event.target.classList.contains('remove-row')) {
+                return;
+            }
+            if (body.rows.length > 1) {
+                event.target.closest('tr').remove();
+                renumber();
+            }
+        });
+
+        document.getElementById('addRow').addEventListener('click', function () {
+            var template = body.rows[0].cloneNode(true);
+            template.cells[1].querySelector('select').value = '';
+            template.cells[2].textContent = '';
+            template.cells[3].innerHTML =
+                '<button type="button" class="remove-row" title="Удалить строку">&#10006;</button>';
+            body.appendChild(template);
+            renumber();
+        });
+    })();
+</script>
+
+</body>
+</html>

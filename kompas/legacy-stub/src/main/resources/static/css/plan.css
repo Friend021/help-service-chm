@@ -1,0 +1,246 @@
+/* Верстка воспроизводит экран «Создать план развития» (docs/legacy-screenshot.png) */
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+}
+
+/* ---------- A.2 Красная шапка ---------- */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 52px;
+    padding: 0 22px;
+    background: #E30613;
+    color: #fff;
+}
+
+.header__title {
+    font-weight: bold;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.header__label {
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.header__user {
+    width: 330px;
+    height: 28px;
+    padding: 0 8px;
+    border: none;
+    border-radius: 3px;
+    background: #fff;
+    color: #333;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+/* ---------- A.1 Каркас ---------- */
+.layout {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 18px;
+}
+
+/* ---------- A.3 Боковое меню ---------- */
+.sidebar {
+    flex: 0 0 250px;
+    padding: 4px 0 0 34px;
+}
+
+.sidebar__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #777;
+    font-size: 14px;
+}
+
+.sidebar__marker {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #bdbdbd;
+}
+
+.main {
+    flex: 1 1 auto;
+    padding-right: 75px;
+}
+
+/* ---------- A.4 Карточка ---------- */
+.card {
+    border: 1px solid #e3e3e3;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    background: #fff;
+    padding: 24px 28px 42px;
+}
+
+.card__title {
+    margin: 4px 0 22px;
+    text-align: center;
+    font-size: 19px;
+    font-weight: bold;
+    color: #1F6E80;
+}
+
+.card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.meta__row {
+    margin-bottom: 9px;
+    font-size: 15px;
+}
+
+.meta__label {
+    font-weight: bold;
+    color: #1F6E80;
+}
+
+.meta__value {
+    color: #333;
+}
+
+.link {
+    color: #1155cc;
+    text-decoration: underline;
+    font-size: 15px;
+}
+
+.section-title {
+    margin: 46px 0 14px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1F6E80;
+}
+
+/* ---------- A.5 Таблица приоритетов ---------- */
+.priorities {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.priorities th,
+.priorities td {
+    border: 1px solid #dcdcdc;
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+.priorities thead th {
+    background: #f5f5f5;
+    text-align: center;
+    font-weight: normal;
+    color: #333;
+}
+
+.col-priority { width: 6%; }
+.col-goal     { width: 28%; }
+.col-what     { width: 62%; }
+.col-actions  { width: 4%; }
+
+.cell-priority {
+    text-align: center;
+    color: #1F6E80;
+}
+
+.goal-select {
+    width: 100%;
+    height: 28px;
+    padding: 2px 6px;
+    border: 1px solid #c9c9c9;
+    border-radius: 3px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.cell-actions {
+    text-align: center;
+}
+
+.remove-row {
+    border: none;
+    background: none;
+    color: #e53935;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.add-row-cell {
+    padding: 10px 12px;
+}
+
+.add-row {
+    border: none;
+    background: none;
+    padding: 0;
+    color: #1155cc;
+    text-decoration: underline;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* ---------- A.6 Кнопки ---------- */
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 58px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn--primary {
+    background: #3A9BB0;
+    color: #fff;
+}
+
+.btn--kompas {
+    background: #fff;
+    color: #1F6E80;
+    border: 1px solid #3A9BB0;
+}
+
+.btn--kompas:hover {
+    background: #eef7f9;
+}
+
+/* ---------- A.7 Футер ---------- */
+.footer {
+    margin: 18px 0 28px;
+    text-align: center;
+    color: #9a9a9a;
+    font-size: 12px;
+    font-family: "Times New Roman", Times, serif;
+}
