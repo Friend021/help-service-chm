@@ -8,6 +8,13 @@ spring:
     import: classpath:demo-employees.yml
   thymeleaf:
     cache: false
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          # Без этого браузер кэширует css по эвристике и после правки стилей
+          # показывает старую страницу — на демо это выглядит как поломка вёрстки
+          no-cache: true
 
 legacy:
   # HMAC-секрет, общий с «Компасом» (см. /docs/integration.md)
