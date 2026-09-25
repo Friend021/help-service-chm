@@ -9,6 +9,7 @@ import { Idp, Priority, PriorityPatch } from '../core/models';
 
 interface EditablePriority {
   order: number;
+  goalCategory: string | null;
   developmentGoal: string;
   competencyCodes: string[];
   competencyNames: string[];
@@ -141,6 +142,7 @@ export class IdpPanelComponent {
       .filter((item) => item.developmentGoal.trim().length > 0)
       .map((item, index) => ({
         order: index + 1,
+        goalCategory: item.goalCategory,
         developmentGoal: item.developmentGoal.trim(),
         competencyCodes: item.competencyCodes,
         activityCodes: item.activityCodes,
@@ -236,6 +238,7 @@ export class IdpPanelComponent {
     }
     return idp.priorities.map((priority: Priority) => ({
       order: priority.order,
+      goalCategory: priority.goalCategory ?? null,
       developmentGoal: priority.developmentGoal,
       competencyCodes: priority.competencies.map((item) => item.code),
       competencyNames: priority.competencies.map((item) => item.name),

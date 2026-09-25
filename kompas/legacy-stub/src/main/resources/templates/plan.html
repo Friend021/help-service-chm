@@ -83,9 +83,18 @@
                 <tbody id="prioritiesBody" th:if="${imported}">
                 <tr th:each="row, it : ${imported.rows}">
                     <td class="cell-priority" th:text="${row.order}">1</td>
-                    <td class="cell-goal" th:text="${row.goal}"></td>
+                    <!-- Колонка — выпадающий список: из «Компаса» приходит категория справочника -->
                     <td>
-                        <div th:text="${row.competencies}"></div>
+                        <select class="goal-select">
+                            <option value=""></option>
+                            <option th:each="c : ${goalCategories}" th:text="${c}"
+                                    th:selected="${c == row.category}"></option>
+                        </select>
+                    </td>
+                    <!-- Свободная колонка: компетенции, сама цель по SMART и активности -->
+                    <td>
+                        <div class="cell-competencies" th:text="${row.competencies}"></div>
+                        <div class="cell-goal" th:text="${row.goal}"></div>
                         <div class="cell-activities" th:if="${!#strings.isEmpty(row.activities)}"
                              th:text="'Активности: ' + ${row.activities}"></div>
                     </td>
@@ -102,9 +111,7 @@
                     <td>
                         <select class="goal-select">
                             <option value=""></option>
-                            <option>Профессиональное развитие</option>
-                            <option>Управленческое развитие</option>
-                            <option>Развитие в смежной области</option>
+                            <option th:each="c : ${goalCategories}" th:text="${c}"></option>
                         </select>
                     </td>
                     <td></td>
@@ -115,9 +122,7 @@
                     <td>
                         <select class="goal-select">
                             <option value=""></option>
-                            <option>Профессиональное развитие</option>
-                            <option>Управленческое развитие</option>
-                            <option>Развитие в смежной области</option>
+                            <option th:each="c : ${goalCategories}" th:text="${c}"></option>
                         </select>
                     </td>
                     <td></td>
@@ -130,9 +135,7 @@
                     <td>
                         <select class="goal-select">
                             <option value=""></option>
-                            <option>Профессиональное развитие</option>
-                            <option>Управленческое развитие</option>
-                            <option>Развитие в смежной области</option>
+                            <option th:each="c : ${goalCategories}" th:text="${c}"></option>
                         </select>
                     </td>
                     <td></td>

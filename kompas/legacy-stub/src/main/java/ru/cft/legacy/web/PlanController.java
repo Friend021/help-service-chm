@@ -37,6 +37,7 @@ public class PlanController {
     public String plan(@RequestParam(name = "employee", required = false) String externalId, Model model) {
         DemoEmployee employee = resolve(externalId);
         model.addAttribute("employees", properties.getEmployees());
+        model.addAttribute("goalCategories", properties.getGoalCategories());
         model.addAttribute("employee", employee);
         model.addAttribute("today", LocalDate.now().format(DATE));
         return "plan";
@@ -53,6 +54,7 @@ public class PlanController {
             plan = handoverVerifier.verify(token);
         } catch (IllegalArgumentException e) {
             model.addAttribute("employees", properties.getEmployees());
+        model.addAttribute("goalCategories", properties.getGoalCategories());
             model.addAttribute("employee", resolve(null));
             model.addAttribute("today", LocalDate.now().format(DATE));
             model.addAttribute("importError", e.getMessage());
@@ -63,6 +65,7 @@ public class PlanController {
                 plan.employeeExternalId(), plan.rows().size());
 
         model.addAttribute("employees", properties.getEmployees());
+        model.addAttribute("goalCategories", properties.getGoalCategories());
         model.addAttribute("employee", resolve(plan.employeeExternalId()));
         model.addAttribute("today", plan.date() == null
                 ? LocalDate.now().format(DATE)

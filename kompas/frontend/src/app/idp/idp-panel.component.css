@@ -215,3 +215,14 @@
 .remove-row {
   font-size: 15px;
 }
+
+/* Категория из выпадающего списка формы «ПЛАН РАЗВИТИЯ» */
+.goal-category {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #eef2f4;
+  color: #4a5256;
+  font-size: 12px;
+}

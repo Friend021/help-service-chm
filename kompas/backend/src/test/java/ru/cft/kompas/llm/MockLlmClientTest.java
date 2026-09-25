@@ -8,11 +8,12 @@ import org.junit.jupiter.api.Test;
 import ru.cft.kompas.dialog.AssistantEnvelope;
 import ru.cft.kompas.dialog.DraftParser;
 import ru.cft.kompas.domain.DialogStage;
+import ru.cft.kompas.reference.GoalCategoryCatalog;
 
 class MockLlmClientTest {
 
     private final MockLlmClient client = new MockLlmClient();
-    private final DraftParser parser = new DraftParser(new ObjectMapper());
+    private final DraftParser parser = new DraftParser(new ObjectMapper(), new GoalCategoryCatalog());
 
     private static final String CONTEXT = """
             ### Состояние сессии

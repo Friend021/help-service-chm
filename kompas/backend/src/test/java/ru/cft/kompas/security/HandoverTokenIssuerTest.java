@@ -56,7 +56,7 @@ class HandoverTokenIssuerTest {
     void план_без_активностей_переносится_с_пустой_колонкой() {
         IdpView bare = new IdpView(7L, LocalDate.of(2026, 9, 25), "DRAFT", "emp-001", "Сотрудник",
                 "Руководитель", "Разработчик Java", "Ведущий разработчик Java",
-                List.of(new IdpView.PriorityView(1, "Цель", List.of(), List.of(), List.of())));
+                List.of(new IdpView.PriorityView(1, null, "Цель", List.of(), List.of(), List.of())));
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> rows = parse(issuer.issueUrl(bare)).get("priorities", List.class);
@@ -79,11 +79,11 @@ class HandoverTokenIssuerTest {
                 "Ковалёв Артём Сергеевич", "Верещагин Олег Борисович",
                 "Ведущий разработчик Java", "Архитектор решений",
                 List.of(
-                        new IdpView.PriorityView(2, "Вторая цель",
+                        new IdpView.PriorityView(2, "Изучение продуктов", "Вторая цель",
                                 List.of(new IdpView.NamedRef("ARC-06", "Влияние и переговоры", null),
                                         new IdpView.NamedRef("ARC-01", "Архитектура прикладных решений", null)),
                                 List.of(), List.of()),
-                        new IdpView.PriorityView(1, "Первая цель",
+                        new IdpView.PriorityView(1, "Адаптация к должности", "Первая цель",
                                 List.of(new IdpView.NamedRef("ARC-03", "Нефункциональные требования", null)),
                                 List.of(new IdpView.NamedRef("ACT-017", "Нагрузочное тестирование", null)),
                                 List.of())));

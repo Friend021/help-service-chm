@@ -85,6 +85,10 @@
           <tr>
             <td class="cell-order">{{ i + 1 }}</td>
             <td>
+              @if (priority.goalCategory) {
+                <div class="goal-category">{{ priority.goalCategory }}</div>
+              }
+
               @if (editing()) {
                 <textarea class="goal-input" rows="4"
                           [(ngModel)]="priority.developmentGoal"

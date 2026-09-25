@@ -80,6 +80,7 @@ public class IdpService {
         for (DraftDto.PriorityDto item : source) {
             IdpPriority priority = new IdpPriority();
             priority.setOrderNo(item.order() == null ? order : item.order());
+            priority.setGoalCategory(item.goalCategory());
             priority.setDevelopmentGoal(item.developmentGoal());
             priority.setCompetencyCodes(new ArrayList<>(
                     item.competencyCodes() == null ? List.of() : item.competencyCodes()));
@@ -115,6 +116,7 @@ public class IdpService {
                             m.getDueDate() == null ? null : m.getDueDate().toString()))
                     .toList();
             priorities.add(new DraftDto.PriorityDto(priority.getOrderNo(),
+                    priority.getGoalCategory(),
                     priority.getDevelopmentGoal(),
                     List.copyOf(priority.getCompetencyCodes()),
                     List.copyOf(priority.getActivityCodes()),

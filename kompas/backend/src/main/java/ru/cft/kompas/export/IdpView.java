@@ -15,6 +15,7 @@ public record IdpView(Long id,
                       List<PriorityView> priorities) {
 
     public record PriorityView(Integer order,
+                               String goalCategory,
                                String developmentGoal,
                                List<NamedRef> competencies,
                                List<NamedRef> activities,

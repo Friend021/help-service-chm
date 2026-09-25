@@ -9,6 +9,7 @@ public record DraftDto(String targetRole, List<PriorityDto> priorities) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record PriorityDto(Integer order,
+                              String goalCategory,
                               String developmentGoal,
                               List<String> competencyCodes,
                               List<String> activityCodes,

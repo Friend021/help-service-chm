@@ -87,7 +87,10 @@ public class DocxExporter {
         for (IdpView.PriorityView priority : view.priorities()) {
             XWPFTableRow row = table.getRow(rowIndex++);
             cell(row, 0, String.valueOf(priority.order()));
-            cell(row, 1, priority.developmentGoal());
+            // В форме это выпадающий список: сначала категория, под ней — сама цель
+            cell(row, 1, priority.goalCategory() == null || priority.goalCategory().isBlank()
+                    ? priority.developmentGoal()
+                    : priority.goalCategory() + "\n" + priority.developmentGoal());
             cell(row, 2, priority.competencies().isEmpty()
                     ? ""
                     : String.join("; ", priority.competencies().stream()
@@ -103,7 +106,15 @@ public class DocxExporter {
 
     private void cell(XWPFTableRow row, int index, String text) {
         XWPFParagraph paragraph = row.getCell(index).getParagraphs().get(0);
-        plain(paragraph, text == null ? "" : text);
+        // POI не переносит строки сам: каждый перевод строки — отдельный break
+        String[] lines = (text == null ? "" : text).split("\n", -1);
+        XWPFRun run = paragraph.createRun();
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                run.addBreak();
+            }
+            run.setText(lines[i]);
+        }
     }
 
     private void title(XWPFDocument document, String text) {

@@ -30,6 +30,10 @@ public class IdpPriority {
     @Column(name = "development_goal", nullable = false, columnDefinition = "text")
     private String developmentGoal;
 
+    /** Категория из выпадающего списка формы. Валидируется по GoalCategoryCatalog. */
+    @Column(name = "goal_category")
+    private String goalCategory;
+
     /** Коды компетенций целевой роли - колонка "Что развиваем?". */
     @Convert(converter = CsvListConverter.class)
     @Column(name = "competency_codes", columnDefinition = "text")
@@ -58,6 +62,14 @@ public class IdpPriority {
 
     public void setOrderNo(Integer orderNo) {
         this.orderNo = orderNo;
+    }
+
+    public String getGoalCategory() {
+        return goalCategory;
+    }
+
+    public void setGoalCategory(String goalCategory) {
+        this.goalCategory = goalCategory;
     }
 
     public String getDevelopmentGoal() {

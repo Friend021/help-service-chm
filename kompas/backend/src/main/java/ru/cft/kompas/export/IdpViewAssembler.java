@@ -80,6 +80,7 @@ public class IdpViewAssembler {
                     .toList();
 
             priorities.add(new IdpView.PriorityView(priority.getOrderNo(),
+                    priority.getGoalCategory(),
                     priority.getDevelopmentGoal(), competencyRefs, activityRefs, milestones));
         }
 

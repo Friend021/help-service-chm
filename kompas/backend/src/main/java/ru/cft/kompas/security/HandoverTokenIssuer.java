@@ -58,8 +58,12 @@ public class HandoverTokenIssuer {
     }
 
     /**
-     * Раскладка под колонки формы: «Приоритет», «Цели по развитию», «Что развиваем?».
-     * Порядок — по номеру приоритета, как в самой форме.
+     * Раскладка под колонки формы.
+     *
+     * «Цели по развитию» — выпадающий список, туда идёт только категория из его
+     * справочника. Вся содержательная часть (компетенции, сама цель по SMART,
+     * активности) ложится в свободную колонку «Что развиваем?».
+     * Порядок строк — по номеру приоритета, как в самой форме.
      */
     private List<Map<String, Object>> rows(IdpView view) {
         List<IdpView.PriorityView> sorted = new ArrayList<>(view.priorities());
@@ -71,6 +75,7 @@ public class HandoverTokenIssuer {
         for (IdpView.PriorityView priority : sorted) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("order", priority.order() == null ? order : priority.order());
+            row.put("category", priority.goalCategory());
             row.put("goal", priority.developmentGoal());
             row.put("competencies", join(priority.competencies()));
             row.put("activities", join(priority.activities()));

@@ -14,6 +14,7 @@ import ru.cft.kompas.domain.SourceType;
 import ru.cft.kompas.llm.EmbeddingClient;
 import ru.cft.kompas.repo.CompetencyRepository;
 import ru.cft.kompas.repo.DevelopmentActivityRepository;
+import ru.cft.kompas.reference.GoalCategoryCatalog;
 import ru.cft.kompas.repo.JobPositionRepository;
 
 /**
@@ -30,6 +31,7 @@ public class Retriever {
     private final CompetencyRepository competencies;
     private final DevelopmentActivityRepository activities;
     private final JobPositionRepository positions;
+    private final GoalCategoryCatalog goalCategories;
     private final KompasProperties.Rag config;
 
     public Retriever(VectorStore vectorStore,
@@ -37,12 +39,14 @@ public class Retriever {
                      CompetencyRepository competencies,
                      DevelopmentActivityRepository activities,
                      JobPositionRepository positions,
+                     GoalCategoryCatalog goalCategories,
                      KompasProperties properties) {
         this.vectorStore = vectorStore;
         this.embeddingClient = embeddingClient;
         this.competencies = competencies;
         this.activities = activities;
         this.positions = positions;
+        this.goalCategories = goalCategories;
         this.config = properties.getRag();
     }
 
@@ -59,6 +63,7 @@ public class Retriever {
                 ? null
                 : positions.findById(currentPositionId).orElse(null);
 
+        appendGoalCategories(text);
         appendAvailableTargetRoles(text, sources, targetRole, currentPosition);
 
         if (targetRole != null && targetRole.getJobDescriptionRef() != null) {
@@ -109,6 +114,19 @@ public class Retriever {
         }
 
         return new RagContext(text.toString(), competencyCodes, activityCodes, sources);
+    }
+
+    /**
+     * Справочник колонки «Цели по развитию» формы «ПЛАН РАЗВИТИЯ».
+     * Подаётся целиком: значений немного, а выбрать нужно ровно одно из них —
+     * произвольная формулировка в форму не встанет.
+     */
+    private void appendGoalCategories(StringBuilder text) {
+        text.append("### Категории целей по развитию (справочник формы, выбрать ровно одну)\n");
+        for (String category : goalCategories.all()) {
+            text.append("- ").append(category).append('\n');
+        }
+        text.append('\n');
     }
 
     /**

@@ -52,7 +52,7 @@ class IdpServiceTest {
         idp.setTargetRoleId(10L);
 
         DraftDto draft = new DraftDto("Ведущий разработчик Java", List.of(
-                new DraftDto.PriorityDto(1, "Цель по SMART",
+                new DraftDto.PriorityDto(1, "Адаптация к должности", "Цель по SMART",
                         List.of("LJD-01"), List.of("ACT-002"),
                         List.of(new DraftDto.MilestoneDto("Точка", "2026-11-30")))));
 
@@ -73,7 +73,7 @@ class IdpServiceTest {
         Idp idp = new Idp();
 
         DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, "Цель",
+                new DraftDto.PriorityDto(1, null, "Цель",
                         List.of(), List.of(),
                         List.of(new DraftDto.MilestoneDto("Точка", "как-нибудь в декабре")))));
 
@@ -88,7 +88,7 @@ class IdpServiceTest {
         idp.setStatus(IdpStatus.ON_APPROVAL);
 
         DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, "Новая цель", List.of(), List.of(), List.of())));
+                new DraftDto.PriorityDto(1, null, "Новая цель", List.of(), List.of(), List.of())));
 
         Idp result = service.applyDraft(idp, draft, 10L);
 

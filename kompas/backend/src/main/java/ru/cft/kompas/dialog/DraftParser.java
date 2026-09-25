@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.cft.kompas.domain.DialogStage;
+import ru.cft.kompas.reference.GoalCategoryCatalog;
 
 /**
  * Разбирает ответ LLM: достаёт JSON-объект из произвольного текста,
@@ -20,9 +21,11 @@ public class DraftParser {
     private static final Logger log = LoggerFactory.getLogger(DraftParser.class);
 
     private final ObjectMapper objectMapper;
+    private final GoalCategoryCatalog goalCategories;
 
-    public DraftParser(ObjectMapper objectMapper) {
+    public DraftParser(ObjectMapper objectMapper, GoalCategoryCatalog goalCategories) {
         this.objectMapper = objectMapper;
+        this.goalCategories = goalCategories;
     }
 
     public AssistantEnvelope parse(String raw, DialogStage currentStage) {
@@ -73,7 +76,14 @@ public class DraftParser {
                             .filter(m -> m.title() != null && !m.title().isBlank())
                             .toList();
 
-            result.add(new DraftDto.PriorityDto(order++, priority.developmentGoal().trim(),
+            // Категория должна быть из справочника формы, иначе перенос туда не встанет
+            String category = goalCategories.normalize(priority.goalCategory());
+            if (category == null && priority.goalCategory() != null) {
+                log.warn("Ассистент вернул категорию цели «{}» вне справочника — отброшена",
+                        priority.goalCategory());
+            }
+
+            result.add(new DraftDto.PriorityDto(order++, category, priority.developmentGoal().trim(),
                     keptCompetencies, keptActivities, milestones));
         }
 

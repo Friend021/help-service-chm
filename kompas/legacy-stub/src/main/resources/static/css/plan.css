@@ -262,12 +262,17 @@ body {
     color: #b3261e;
 }
 
-.cell-goal {
-    line-height: 1.45;
-}
-
 .cell-activities {
     margin-top: 6px;
     color: #777;
     font-size: 13px;
+}
+
+.cell-competencies {
+    color: #1F6E80;
+}
+
+.cell-goal {
+    margin-top: 5px;
+    line-height: 1.45;
 }

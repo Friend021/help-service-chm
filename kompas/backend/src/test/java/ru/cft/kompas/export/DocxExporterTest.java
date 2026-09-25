@@ -18,7 +18,7 @@ class DocxExporterTest {
         IdpView view = new IdpView(42L, LocalDate.of(2026, 9, 22), "DRAFT", "emp-001",
                 "Соколова Анна Дмитриевна", "Верещагин Олег Борисович",
                 "Разработчик Java", "Ведущий разработчик Java",
-                List.of(new IdpView.PriorityView(1, "Цель по SMART до 31.12.2026",
+                List.of(new IdpView.PriorityView(1, "Адаптация к должности", "Цель по SMART до 31.12.2026",
                         List.of(new IdpView.NamedRef("LJD-01", "Проектирование компонентов и API",
                                 "целевой уровень 3")),
                         List.of(new IdpView.NamedRef("ACT-001", "Внутренний курс", "Учебный центр ЦФТ")),
@@ -42,7 +42,10 @@ class DocxExporterTest {
             XWPFTable table = document.getTables().get(0);
             assertThat(table.getRow(0).getCell(0).getText()).isEqualTo("Приоритет");
             assertThat(table.getRow(0).getCell(2).getText()).isEqualTo("Что развиваем?");
-            assertThat(table.getRow(1).getCell(1).getText()).isEqualTo("Цель по SMART до 31.12.2026");
+            // В форме эта колонка — выпадающий список: сначала категория, под ней цель
+            assertThat(table.getRow(1).getCell(1).getText())
+                    .contains("Адаптация к должности")
+                    .contains("Цель по SMART до 31.12.2026");
             assertThat(table.getRow(1).getCell(2).getText())
                     .isEqualTo("Проектирование компонентов и API");
         }

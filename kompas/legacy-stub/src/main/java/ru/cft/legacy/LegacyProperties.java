@@ -21,6 +21,9 @@ public class LegacyProperties {
     /** Предзаданные демо-сотрудники (demo-employees.yml). */
     private List<DemoEmployee> employees = new ArrayList<>();
 
+    /** Значения выпадающего списка «Цели по развитию». */
+    private List<String> goalCategories = new ArrayList<>();
+
     public String getJwtSecret() {
         return jwtSecret;
     }
@@ -51,5 +54,13 @@ public class LegacyProperties {
 
     public void setEmployees(List<DemoEmployee> employees) {
         this.employees = employees;
+    }
+
+    public List<String> getGoalCategories() {
+        return goalCategories;
+    }
+
+    public void setGoalCategories(List<String> goalCategories) {
+        this.goalCategories = goalCategories;
     }
 }

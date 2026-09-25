@@ -7,10 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import ru.cft.kompas.domain.DialogStage;
+import ru.cft.kompas.reference.GoalCategoryCatalog;
 
 class DraftParserTest {
 
-    private final DraftParser parser = new DraftParser(new ObjectMapper());
+    private final DraftParser parser = new DraftParser(new ObjectMapper(), new GoalCategoryCatalog());
 
     @Test
     void разбирает_json_в_markdown_обёртке() {
@@ -78,7 +79,7 @@ class DraftParserTest {
     @Test
     void коды_вне_контекста_отбрасываются() {
         DraftDto draft = new DraftDto("Ведущий разработчик Java", List.of(
-                new DraftDto.PriorityDto(1, "Цель по SMART",
+                new DraftDto.PriorityDto(1, "Адаптация к должности", "Цель по SMART",
                         List.of("LJD-01", "ВЫДУМАННАЯ"),
                         List.of("ACT-001", "ACT-999"),
                         List.of(new DraftDto.MilestoneDto("Точка", "2026-12-31")))));
@@ -93,7 +94,7 @@ class DraftParserTest {
     @Test
     void коды_с_префиксом_из_контекста_принимаются() {
         DraftDto draft = new DraftDto("Архитектор решений", List.of(
-                new DraftDto.PriorityDto(1, "Цель по SMART",
+                new DraftDto.PriorityDto(1, "Адаптация к должности", "Цель по SMART",
                         List.of("COMP:ARC-03", "[COMP:ARC-06]"),
                         List.of("ACT:ACT-017", "[ACT:ACT-010]"),
                         List.of())));
@@ -106,10 +107,34 @@ class DraftParserTest {
     }
 
     @Test
+    void категория_цели_вне_справочника_формы_отбрасывается() {
+        DraftDto draft = new DraftDto("Роль", List.of(
+                new DraftDto.PriorityDto(1, "Профессиональный рост", "Цель",
+                        List.of(), List.of(), List.of())));
+
+        DraftDto result = parser.sanitize(draft, List.of(), List.of());
+
+        assertThat(result.priorities().get(0).goalCategory())
+                .as("в форме это выпадающий список, своя формулировка туда не встанет")
+                .isNull();
+    }
+
+    @Test
+    void категория_из_справочника_нормализуется_по_регистру() {
+        DraftDto draft = new DraftDto("Роль", List.of(
+                new DraftDto.PriorityDto(1, "  адаптация К ДОЛЖНОСТИ ", "Цель",
+                        List.of(), List.of(), List.of())));
+
+        DraftDto result = parser.sanitize(draft, List.of(), List.of());
+
+        assertThat(result.priorities().get(0).goalCategory()).isEqualTo("Адаптация к должности");
+    }
+
+    @Test
     void приоритеты_без_цели_отбрасываются_и_нумерация_сквозная() {
         DraftDto draft = new DraftDto("Роль", List.of(
-                new DraftDto.PriorityDto(1, "  ", List.of(), List.of(), List.of()),
-                new DraftDto.PriorityDto(7, "Вторая цель", List.of("LJD-01"), List.of(), List.of())));
+                new DraftDto.PriorityDto(1, null, "  ", List.of(), List.of(), List.of()),
+                new DraftDto.PriorityDto(7, null, "Вторая цель", List.of("LJD-01"), List.of(), List.of())));
 
         DraftDto result = parser.sanitize(draft, List.of("LJD-01"), List.of());
 

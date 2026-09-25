@@ -26,6 +26,7 @@ export interface Milestone {
 
 export interface Priority {
   order: number;
+  goalCategory?: string | null;
   developmentGoal: string;
   competencies: NamedRef[];
   activities: NamedRef[];
@@ -72,6 +73,7 @@ export interface TurnResponse {
 /** Тело ручной правки: приоритеты в «сыром» виде, кодами. */
 export interface PriorityPatch {
   order: number;
+  goalCategory?: string | null;
   developmentGoal: string;
   competencyCodes: string[];
   activityCodes: string[];

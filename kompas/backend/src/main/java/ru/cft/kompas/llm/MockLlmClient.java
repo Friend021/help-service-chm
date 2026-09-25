@@ -119,7 +119,8 @@ public class MockLlmClient implements LlmClient {
                 draft.append(',');
             }
             draft.append("{\"order\":").append(i + 1)
-                    .append(",\"developmentGoal\":\"")
+                    .append(",\"goalCategory\":\"").append(escape(pickCategory(prompt, i)))
+                    .append("\",\"developmentGoal\":\"")
                     .append(escape("До %s выйти на целевой уровень по направлению \"%s\": закрыть не менее двух рабочих задач, где эта компетенция применяется, и получить обратную связь руководителя."
                             .formatted(base.plusMonths(3L * (i + 1)).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")), name)))
                     .append("\",\"competencyCodes\":[\"").append(escape(code)).append("\"]")
@@ -206,12 +207,34 @@ public class MockLlmClient implements LlmClient {
                 || text.contains("не планирую");
     }
 
+    /**
+     * Категория цели из справочника формы. Первое значение — «развитие не требуется»,
+     * для черновика оно бессмысленно, поэтому перебираем со второго.
+     */
+    private static String pickCategory(String prompt, int index) {
+        List<String> categories = section(prompt, "### Категории целей по развитию");
+        if (categories.isEmpty()) {
+            return "";
+        }
+        if (categories.size() == 1) {
+            return categories.get(0);
+        }
+        return categories.get(1 + index % (categories.size() - 1));
+    }
+
     /** Роли из блока «Доступные целевые роли трека» RAG-контекста. */
     private static List<String> availableRoles(String prompt) {
-        List<String> roles = new ArrayList<>();
+        return section(prompt, "### Доступные целевые роли").stream()
+                .map(role -> role.replace("(выбрана сейчас)", "").trim())
+                .toList();
+    }
+
+    /** Пункты списка из блока RAG-контекста с заданным заголовком. */
+    private static List<String> section(String prompt, String heading) {
+        List<String> items = new ArrayList<>();
         boolean inside = false;
         for (String line : prompt.split("\n")) {
-            if (line.startsWith("### Доступные целевые роли")) {
+            if (line.startsWith(heading)) {
                 inside = true;
                 continue;
             }
@@ -220,11 +243,11 @@ public class MockLlmClient implements LlmClient {
                     break;
                 }
                 if (line.startsWith("- ")) {
-                    roles.add(line.substring(2).replace("(выбрана сейчас)", "").trim());
+                    items.add(line.substring(2).trim());
                 }
             }
         }
-        return roles;
+        return items;
     }
 
     private String envelope(String message, String nextStage, String draftJson) {
