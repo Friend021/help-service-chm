@@ -1,0 +1,108 @@
+package ru.cft.kompas.domain;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import ru.cft.kompas.dialog.DraftDto;
+import ru.cft.kompas.repo.IdpRepository;
+
+class IdpServiceTest {
+
+    private IdpRepository repository;
+    private IdpService service;
+
+    @BeforeEach
+    void setUp() {
+        repository = mock(IdpRepository.class);
+        when(repository.save(any(Idp.class))).thenAnswer(call -> call.getArgument(0));
+        service = new IdpService(repository);
+    }
+
+    @Test
+    void смена_целевой_роли_сбрасывает_приоритеты_прежней_роли() {
+        Idp idp = idpWithPriority("ARC-01");
+        idp.setTargetRoleId(10L);
+
+        Idp result = service.updateTargetRole(idp, 20L);
+
+        assertThat(result.getTargetRoleId()).isEqualTo(20L);
+        assertThat(result.getPriorities())
+                .as("план прежней роли не должен остаться под новым заголовком")
+                .isEmpty();
+    }
+
+    @Test
+    void та_же_роль_не_трогает_план() {
+        Idp idp = idpWithPriority("LJD-01");
+        idp.setTargetRoleId(10L);
+
+        Idp result = service.updateTargetRole(idp, 10L);
+
+        assertThat(result.getPriorities()).hasSize(1);
+    }
+
+    @Test
+    void черновик_раскладывается_в_приоритеты_с_реперными_точками() {
+        Idp idp = new Idp();
+        idp.setTargetRoleId(10L);
+
+        DraftDto draft = new DraftDto("Ведущий разработчик Java", List.of(
+                new DraftDto.PriorityDto(1, "Цель по SMART",
+                        List.of("LJD-01"), List.of("ACT-002"),
+                        List.of(new DraftDto.MilestoneDto("Точка", "2026-11-30")))));
+
+        Idp result = service.applyDraft(idp, draft, 10L);
+
+        assertThat(result.getPriorities()).hasSize(1);
+        IdpPriority priority = result.getPriorities().get(0);
+        assertThat(priority.getOrderNo()).isEqualTo(1);
+        assertThat(priority.getCompetencyCodes()).containsExactly("LJD-01");
+        assertThat(priority.getActivityCodes()).containsExactly("ACT-002");
+        assertThat(priority.getMilestones()).hasSize(1);
+        assertThat(priority.getMilestones().get(0).getDueDate().toString()).isEqualTo("2026-11-30");
+        assertThat(priority.getMilestones().get(0).getStatus()).isEqualTo(MilestoneStatus.PLANNED);
+    }
+
+    @Test
+    void некорректная_дата_реперной_точки_не_ломает_применение() {
+        Idp idp = new Idp();
+
+        DraftDto draft = new DraftDto("Роль", List.of(
+                new DraftDto.PriorityDto(1, "Цель",
+                        List.of(), List.of(),
+                        List.of(new DraftDto.MilestoneDto("Точка", "как-нибудь в декабре")))));
+
+        Idp result = service.applyDraft(idp, draft, 10L);
+
+        assertThat(result.getPriorities().get(0).getMilestones().get(0).getDueDate()).isNull();
+    }
+
+    @Test
+    void отправленный_на_согласование_план_черновиком_не_перезаписывается() {
+        Idp idp = idpWithPriority("LJD-01");
+        idp.setStatus(IdpStatus.ON_APPROVAL);
+
+        DraftDto draft = new DraftDto("Роль", List.of(
+                new DraftDto.PriorityDto(1, "Новая цель", List.of(), List.of(), List.of())));
+
+        Idp result = service.applyDraft(idp, draft, 10L);
+
+        assertThat(result.getPriorities()).hasSize(1);
+        assertThat(result.getPriorities().get(0).getDevelopmentGoal()).isEqualTo("Старая цель");
+    }
+
+    private static Idp idpWithPriority(String competencyCode) {
+        Idp idp = new Idp();
+        IdpPriority priority = new IdpPriority();
+        priority.setOrderNo(1);
+        priority.setDevelopmentGoal("Старая цель");
+        priority.setCompetencyCodes(new java.util.ArrayList<>(List.of(competencyCode)));
+        idp.getPriorities().add(priority);
+        return idp;
+    }
+}
