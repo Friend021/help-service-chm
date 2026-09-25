@@ -1,0 +1,73 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: kompas
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kompas}
+    username: ${SPRING_DATASOURCE_USERNAME:kompas}
+    password: ${SPRING_DATASOURCE_PASSWORD:kompas}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+
+kompas:
+  llm:
+    # mock | openrouter
+    provider: ${KOMPAS_LLM_PROVIDER:mock}
+    base-url: ${KOMPAS_LLM_BASE_URL:https://openrouter.ai/api/v1}
+    api-key: ${KOMPAS_LLM_API_KEY:}
+    model: ${KOMPAS_LLM_MODEL:openai/gpt-4o-mini}
+    # Запасная модель на случай лимита у upstream-провайдера основной
+    fallback-model: ${KOMPAS_LLM_FALLBACK_MODEL:}
+    temperature: 0.3
+    # Черновик из трёх приоритетов с реперными точками на русском — это заметный объём.
+    # При нехватке лимита ответ обрезается и JSON не закрывается.
+    max-tokens: ${KOMPAS_LLM_MAX_TOKENS:6000}
+    # Принудительный JSON у провайдера. Выключить, если модель его не поддерживает.
+    json-mode: ${KOMPAS_LLM_JSON_MODE:true}
+    timeout: PT90S
+  embeddings:
+    # local — офлайн-эмбеддинги; openai — эндпоинт /embeddings OpenAI-совместимого провайдера
+    provider: ${KOMPAS_EMBEDDINGS_PROVIDER:local}
+    model: ${KOMPAS_EMBEDDINGS_MODEL:text-embedding-3-small}
+    dimension: 512
+  rag:
+    top-k: 6
+    min-score: 0.02
+  security:
+    jwt-secret: ${KOMPAS_SECURITY_JWT_SECRET:change-me-to-a-long-random-string-at-least-32-chars}
+    access-token-ttl: PT12H
+  legacy:
+    # Куда вернуть готовый план в сервис «ПЛАН РАЗВИТИЯ»
+    import-url: ${KOMPAS_LEGACY_IMPORT_URL:http://localhost:8081/import}
+  approval:
+    # log — заглушка уведомления руководителю
+    notifier: log
+
+logging:
+  level:
+    ru.cft.kompas: INFO
+
+---
+# Полностью офлайн-профиль: детерминированный мок LLM, локальные эмбеддинги.
+spring:
+  config:
+    activate:
+      on-profile: local
+kompas:
+  llm:
+    provider: mock
+  embeddings:
+    provider: local

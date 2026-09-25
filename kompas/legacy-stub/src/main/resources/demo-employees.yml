@@ -1,0 +1,25 @@
+# Предзаданные демо-сотрудники заглушки «ПЛАН РАЗВИТИЯ».
+# Эти же поля уходят в JWT при переходе в «Компас» (Приложение A, п. A.8).
+legacy:
+  employees:
+    - externalId: "emp-001"
+      fullName: "Соколова Анна Дмитриевна"
+      currentPosition: "Разработчик Java"
+      targetRole: "Ведущий разработчик Java"
+      careerTrack: "Разработка ПО"
+      managerFullName: "Верещагин Олег Борисович"
+      managerExternalId: "mgr-001"
+    - externalId: "emp-002"
+      fullName: "Ковалёв Артём Сергеевич"
+      currentPosition: "Ведущий разработчик Java"
+      targetRole: "Архитектор решений"
+      careerTrack: "Разработка ПО"
+      managerFullName: "Верещагин Олег Борисович"
+      managerExternalId: "mgr-001"
+    - externalId: "emp-003"
+      fullName: "Лебедева Мария Игоревна"
+      currentPosition: "Системный аналитик"
+      targetRole: "Ведущий системный аналитик"
+      careerTrack: "Системный анализ"
+      managerFullName: "Наумова Светлана Викторовна"
+      managerExternalId: "mgr-002"

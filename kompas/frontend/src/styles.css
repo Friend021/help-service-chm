@@ -1,0 +1,18 @@
+:root {
+    --kompas-teal: #1F6E80;
+    --kompas-teal-light: #3A9BB0;
+    --kompas-border: #e2e6e8;
+    --kompas-bg: #f4f6f7;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--kompas-bg);
+    color: #2b3134;
+}
+
+* {
+    box-sizing: border-box;
+}

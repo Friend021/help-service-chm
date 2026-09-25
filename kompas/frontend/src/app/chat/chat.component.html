@@ -1,0 +1,71 @@
+<div class="shell">
+  <header class="topbar">
+    <div class="topbar__brand">Компас</div>
+    @if (employee(); as person) {
+      <div class="topbar__person">
+        <span class="topbar__name">{{ person.fullName }}</span>
+        @if (person.currentPosition) {
+          <span class="topbar__role">{{ person.currentPosition }}</span>
+        }
+        @if (person.targetRole) {
+          <span class="topbar__arrow">→</span>
+          <span class="topbar__role topbar__role--target">{{ person.targetRole }}</span>
+        }
+      </div>
+    }
+  </header>
+
+  @if (stage(); as current) {
+    <div class="stage">
+      <div class="stage__label">
+        Шаг {{ current.index }} из {{ current.total }} — {{ current.title }}
+      </div>
+      <mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+    </div>
+  }
+
+  <main class="content">
+    <section class="chat">
+      <div class="chat__scroll" #scroller>
+        @if (loading()) {
+          <div class="chat__loading">Загружаем диалог…</div>
+        }
+
+        @for (message of messages(); track message.id) {
+          <div class="bubble" [class.bubble--user]="message.role === 'user'">
+            <div class="bubble__author">
+              {{ message.role === 'user' ? 'Вы' : 'Компас' }}
+            </div>
+            <div class="bubble__text">{{ message.content }}</div>
+          </div>
+        }
+
+        @if (sending()) {
+          <div class="bubble bubble--typing">
+            <div class="bubble__author">Компас</div>
+            <div class="bubble__text">печатает…</div>
+          </div>
+        }
+      </div>
+
+      <div class="composer">
+        <textarea rows="2"
+                  placeholder="Напишите ответ ассистенту. Enter — отправить, Shift+Enter — перенос строки."
+                  [(ngModel)]="text"
+                  [ngModelOptions]="{standalone: true}"
+                  (keydown)="onKeydown($event)"
+                  [disabled]="sending() || loading()"></textarea>
+        <button mat-flat-button color="primary"
+                (click)="send()"
+                [disabled]="sending() || loading() || !text.trim()">
+          <mat-icon>send</mat-icon>
+          Отправить
+        </button>
+      </div>
+    </section>
+
+    <section class="side">
+      <app-idp-panel [idp]="idp()" (changed)="onIdpChanged($event)"></app-idp-panel>
+    </section>
+  </main>
+</div>

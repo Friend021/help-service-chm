@@ -1,0 +1,89 @@
+export interface Stage {
+  code: string;
+  title: string;
+  index: number;
+  total: number;
+}
+
+export interface ChatMessage {
+  id: number;
+  role: 'user' | 'assistant' | string;
+  content: string;
+  createdAt: string;
+}
+
+export interface NamedRef {
+  code: string;
+  name: string;
+  extra?: string | null;
+}
+
+/** Строка блока «как развиваем» под целью — как в форме «ПЛАН РАЗВИТИЯ». */
+export interface DevelopmentAction {
+  instrument: string;
+  activityCode?: string | null;
+  activityName?: string | null;
+  source?: string | null;
+  action: string;
+  dueDate?: string | null;
+  status: string;
+}
+
+export interface Priority {
+  order: number;
+  goalCategory?: string | null;
+  developmentGoal: string;
+  competencies: NamedRef[];
+  actions: DevelopmentAction[];
+}
+
+export interface Idp {
+  id: number;
+  date: string;
+  status: 'DRAFT' | 'ON_APPROVAL' | 'APPROVED' | 'REJECTED' | string;
+  employeeName?: string | null;
+  managerName?: string | null;
+  currentPosition?: string | null;
+  targetRole?: string | null;
+  priorities: Priority[];
+}
+
+export interface EmployeeInfo {
+  externalId: string;
+  fullName: string;
+  currentPosition?: string | null;
+  targetRole?: string | null;
+  managerFullName?: string | null;
+}
+
+export interface SessionResponse {
+  sessionId: number;
+  accessToken?: string | null;
+  stage: Stage;
+  status: string;
+  employee: EmployeeInfo;
+  messages: ChatMessage[];
+  idp?: Idp | null;
+}
+
+export interface TurnResponse {
+  assistantMessage: string;
+  stage: Stage;
+  /** Целевая роль после хода — сотрудник мог сменить её в диалоге. */
+  targetRole?: string | null;
+  idp?: Idp | null;
+}
+
+/** Тело ручной правки: приоритеты в «сыром» виде, кодами. */
+export interface PriorityPatch {
+  order: number;
+  goalCategory?: string | null;
+  developmentGoal: string;
+  competencyCodes: string[];
+  actions: {
+    instrument: string;
+    activityCode?: string | null;
+    action: string;
+    dueDate?: string | null;
+  }[];
+}
