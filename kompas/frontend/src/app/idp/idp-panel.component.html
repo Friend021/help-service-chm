@@ -1,0 +1,148 @@
+<section class="panel">
+  <header class="panel__head">
+    <div>
+      <h2>Приоритеты развития</h2>
+      @if (idp) {
+        <div class="panel__meta">
+          <span class="badge" [class.badge--approval]="idp.status !== 'DRAFT'">
+            {{ statusLabel(idp.status) }}
+          </span>
+          @if (idp.targetRole) {
+            <span class="panel__role">Целевая роль: {{ idp.targetRole }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    @if (idp && !empty) {
+      <div class="panel__actions">
+        @if (!readOnly) {
+          @if (editing()) {
+            <button mat-stroked-button (click)="cancelEdit()" [disabled]="busy()">Отмена</button>
+            <button mat-flat-button color="primary" (click)="save()" [disabled]="busy()">
+              Сохранить
+            </button>
+          } @else {
+            <button mat-stroked-button (click)="startEdit()" [disabled]="busy()">
+              <mat-icon>edit</mat-icon>
+              Править
+            </button>
+          }
+        }
+
+        <button mat-stroked-button [matMenuTriggerFor]="exportMenu" [disabled]="busy()">
+          <mat-icon>download</mat-icon>
+          Экспортировать
+        </button>
+        <mat-menu #exportMenu="matMenu">
+          <button mat-menu-item (click)="download('docx')">DOCX</button>
+          <button mat-menu-item (click)="download('json')">JSON</button>
+        </mat-menu>
+
+        @if (!readOnly) {
+          <button mat-flat-button color="primary" (click)="submit()"
+                  [disabled]="busy() || editing()">
+            Отправить на согласование
+          </button>
+        }
+      </div>
+    }
+  </header>
+
+  @if (empty) {
+    <div class="empty">
+      <mat-icon>assignment</mat-icon>
+      <p>Черновик пока пуст.</p>
+      <p class="empty__hint">
+        Ответьте на вопросы ассистента слева — приоритеты появятся здесь автоматически.
+      </p>
+    </div>
+  } @else {
+    <table class="priorities">
+      <colgroup>
+        <col class="col-order">
+        <col class="col-goal">
+        <col class="col-what">
+        <col class="col-actions">
+      </colgroup>
+      <thead>
+      <tr>
+        <th>Приоритет</th>
+        <th>Цели по развитию</th>
+        <th>Что развиваем?</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (priority of draft(); track $index; let i = $index) {
+          <tr>
+            <td class="cell-order">{{ i + 1 }}</td>
+            <td>
+              @if (editing()) {
+                <textarea class="goal-input" rows="4"
+                          [(ngModel)]="priority.developmentGoal"
+                          [ngModelOptions]="{standalone: true}"></textarea>
+              } @else {
+                <div class="goal">{{ priority.developmentGoal }}</div>
+              }
+
+              @if (priority.milestones.length) {
+                <div class="milestones">
+                  <div class="milestones__title">Реперные точки</div>
+                  @for (milestone of priority.milestones; track $index; let m = $index) {
+                    <div class="milestone">
+                      <span>{{ milestone.title }}</span>
+                      @if (milestone.dueDate) {
+                        <span class="milestone__date">до {{ milestone.dueDate }}</span>
+                      }
+                      @if (editing()) {
+                        <button class="chip__remove" type="button"
+                                (click)="removeMilestone(i, m)">✕</button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </td>
+            <td>
+              <div class="chips">
+                @for (name of priority.competencyNames; track $index; let c = $index) {
+                  <span class="chip chip--competency">
+                    {{ name }}
+                    @if (editing()) {
+                      <button class="chip__remove" type="button"
+                              (click)="removeCompetency(i, priority.competencyCodes[c])">✕</button>
+                    }
+                  </span>
+                }
+              </div>
+
+              @if (priority.activityNames.length) {
+                <div class="activities">
+                  <div class="activities__title">Развивающие активности</div>
+                  <div class="chips">
+                    @for (name of priority.activityNames; track $index; let a = $index) {
+                      <span class="chip chip--activity">
+                        {{ name }}
+                        @if (editing()) {
+                          <button class="chip__remove" type="button"
+                                  (click)="removeActivity(i, priority.activityCodes[a])">✕</button>
+                        }
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            </td>
+            <td class="cell-actions">
+              @if (editing()) {
+                <button class="remove-row" type="button" title="Удалить приоритет"
+                        (click)="removePriority(i)">✕</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
