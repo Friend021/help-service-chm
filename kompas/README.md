@@ -75,6 +75,7 @@ docs/          integration.md, llm.md, эталонный скриншот
 
 ## Документация
 
+- [`docs/status.md`](docs/status.md) — что готово, что осталось, известные ограничения.
 - [`docs/integration.md`](docs/integration.md) — контракт входа: URL, claims, TTL, ошибки.
 - [`docs/llm.md`](docs/llm.md) — выбор провайдера, ключ, RAG, переход на `ai.redelephant`.
 
