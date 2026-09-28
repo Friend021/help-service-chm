@@ -19,7 +19,7 @@
 | Внешний LLM и офлайн-профиль | OpenRouter и `SPRING_PROFILES_ACTIVE=local` |
 | README | Запуск, `.env`, провайдеры, переход на `ai.redelephant` |
 
-**54 unit-теста**, четыре миграции Flyway.
+**59 unit-тестов**, четыре миграции Flyway.
 
 ## Сверх ТЗ
 
