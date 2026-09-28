@@ -24,6 +24,7 @@ import ru.cft.kompas.llm.LlmException;
 import ru.cft.kompas.llm.LlmParams;
 import ru.cft.kompas.rag.RagContext;
 import ru.cft.kompas.rag.Retriever;
+import ru.cft.kompas.reference.DemoDraftGenerator;
 import ru.cft.kompas.repo.DialogMessageRepository;
 import ru.cft.kompas.repo.DialogSessionRepository;
 import ru.cft.kompas.repo.EmployeeRepository;
@@ -48,6 +49,7 @@ public class DialogOrchestrator {
     private final EmployeeRepository employees;
     private final JobPositionRepository positions;
     private final ObjectMapper objectMapper;
+    private final DemoDraftGenerator demoDraftGenerator;
     private final KompasProperties.Llm llmConfig;
 
     public DialogOrchestrator(LlmClient llmClient,
@@ -60,6 +62,7 @@ public class DialogOrchestrator {
                               EmployeeRepository employees,
                               JobPositionRepository positions,
                               ObjectMapper objectMapper,
+                              DemoDraftGenerator demoDraftGenerator,
                               KompasProperties properties) {
         this.llmClient = llmClient;
         this.retriever = retriever;
@@ -71,6 +74,7 @@ public class DialogOrchestrator {
         this.employees = employees;
         this.positions = positions;
         this.objectMapper = objectMapper;
+        this.demoDraftGenerator = demoDraftGenerator;
         this.llmConfig = properties.getLlm();
     }
 
@@ -93,6 +97,46 @@ public class DialogOrchestrator {
             throw new DialogException("Пустое сообщение");
         }
         return advance(session, userMessage.trim(), true);
+    }
+
+    /**
+     * Набить план болванкой без обращения к модели — для демонстрации и отладки
+     * переноса в «ПЛАН РАЗВИТИЯ». Сессия переводится в доработку: дальше с этим
+     * планом можно работать обычными репликами.
+     */
+    @Transactional
+    public DialogTurn fillWithDemoDraft(DialogSession session) {
+        JobPosition targetRole = session.getTargetRoleId() == null
+                ? null
+                : positions.findById(session.getTargetRoleId()).orElse(null);
+
+        DraftDto draft = demoDraftGenerator.generate(session.getTargetRoleId(),
+                targetRole == null ? null : targetRole.getTitle());
+        if (draft == null) {
+            throw new DialogException("Не из чего собрать тестовый план: "
+                    + "у целевой роли нет модели компетенций");
+        }
+
+        Idp idp = idpService.getOrCreate(session.getEmployeeId(), session.getId(),
+                session.getTargetRoleId());
+        idp = idpService.applyDraft(idp, draft, session.getTargetRoleId());
+
+        session.setStage(DialogStage.REFINE);
+        session.setStageTurns(0);
+        sessions.save(session);
+
+        String message = """
+                Подставил тестовый план — %d приоритета с реальными компетенциями роли \
+                и активностями каталога. Формулировки условные, помечены как тестовые: \
+                кнопка нужна, чтобы проверить перенос в «ПЛАН РАЗВИТИЯ», не проходя диалог.
+                План можно править как обычно."""
+                .formatted(draft.priorities().size());
+
+        save(session.getId(), MessageRole.ASSISTANT, message, null);
+        log.info("Сессия {}: подставлен тестовый план из {} приоритетов",
+                session.getId(), draft.priorities().size());
+
+        return new DialogTurn(message, session.getStage(), idp);
     }
 
     /**

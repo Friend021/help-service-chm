@@ -56,6 +56,13 @@ export class IdpPanelComponent {
 
   @Output() readonly changed = new EventEmitter<Idp>();
 
+  /** Просьба набить план болванкой: сессией владеет чат, он и вызывает API. */
+  @Output() readonly demoRequested = new EventEmitter<void>();
+
+  generateDemo(): void {
+    this.demoRequested.emit();
+  }
+
   get readOnly(): boolean {
     return this.current?.status !== 'DRAFT';
   }

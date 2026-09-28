@@ -268,3 +268,13 @@
   width: 100%;
   margin-bottom: 4px;
 }
+
+.empty__demo {
+  margin-top: 14px;
+}
+
+.empty__note {
+  max-width: 340px;
+  font-size: 12px;
+  color: #a3abae;
+}

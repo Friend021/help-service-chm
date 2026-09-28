@@ -65,7 +65,8 @@
     </section>
 
     <section class="side">
-      <app-idp-panel [idp]="idp()" (changed)="onIdpChanged($event)"></app-idp-panel>
+      <app-idp-panel [idp]="idp()" (changed)="onIdpChanged($event)"
+                     (demoRequested)="onDemoRequested()"></app-idp-panel>
     </section>
   </main>
 </div>

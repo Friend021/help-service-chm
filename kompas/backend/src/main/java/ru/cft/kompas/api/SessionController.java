@@ -86,6 +86,25 @@ public class SessionController {
                 assembler.idpView(turn.idp()));
     }
 
+    /**
+     * Набить план болванкой без диалога — для демонстрации и отладки переноса
+     * в «ПЛАН РАЗВИТИЯ». Модель не вызывается, ответ приходит мгновенно.
+     */
+    @PostMapping("/{id}/demo-draft")
+    public TurnResponse demoDraft(@PathVariable Long id, HttpServletRequest request) {
+        DialogSession session = require(id, request);
+        DialogTurn turn = orchestrator.fillWithDemoDraft(session);
+
+        Long targetRoleId = sessions.findById(id)
+                .map(DialogSession::getTargetRoleId)
+                .orElse(session.getTargetRoleId());
+
+        return new TurnResponse(turn.assistantMessage(),
+                StageDto.of(turn.stage()),
+                assembler.positionTitle(targetRoleId),
+                assembler.idpView(turn.idp()));
+    }
+
     private DialogSession require(Long id, HttpServletRequest request) {
         SessionPrincipal principal = (SessionPrincipal) request.getAttribute(SessionPrincipal.ATTRIBUTE);
         if (principal == null || !principal.sessionId().equals(id)) {

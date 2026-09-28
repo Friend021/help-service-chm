@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../core/api.service';
-import { ChatMessage, EmployeeInfo, Idp, Stage } from '../core/models';
+import { ChatMessage, EmployeeInfo, Idp, Stage, TurnResponse } from '../core/models';
 import { IdpPanelComponent } from '../idp/idp-panel.component';
 
 @Component({
@@ -85,28 +85,7 @@ export class ChatComponent implements OnInit {
     this.api.sendMessage(this.sessionId, text).subscribe({
       next: (turn) => {
         this.sending.set(false);
-        this.messages.update((items) => [
-          ...items,
-          {
-            id: -Date.now(),
-            role: 'assistant',
-            content: turn.assistantMessage,
-            createdAt: new Date().toISOString()
-          }
-        ]);
-        this.stage.set(turn.stage);
-        // Целевая роль могла смениться в диалоге — обновляем шапку.
-        if (turn.targetRole) {
-          this.employee.update((person) =>
-            person && person.targetRole !== turn.targetRole
-              ? { ...person, targetRole: turn.targetRole }
-              : person
-          );
-        }
-        if (turn.idp) {
-          this.idp.set(turn.idp);
-        }
-        this.scrollDown();
+        this.applyTurn(turn);
       },
       error: (response) => {
         this.sending.set(false);
@@ -114,6 +93,32 @@ export class ChatComponent implements OnInit {
         this.snackBar.open(message, 'Ок', { duration: 6000 });
       }
     });
+  }
+
+  /** Общее для обычного хода и тестового плана: реплика, стадия, роль, панель. */
+  private applyTurn(turn: TurnResponse): void {
+    this.messages.update((items) => [
+      ...items,
+      {
+        id: -Date.now(),
+        role: 'assistant',
+        content: turn.assistantMessage,
+        createdAt: new Date().toISOString()
+      }
+    ]);
+    this.stage.set(turn.stage);
+    // Целевая роль могла смениться в диалоге — обновляем шапку.
+    if (turn.targetRole) {
+      this.employee.update((person) =>
+        person && person.targetRole !== turn.targetRole
+          ? { ...person, targetRole: turn.targetRole }
+          : person
+      );
+    }
+    if (turn.idp) {
+      this.idp.set(turn.idp);
+    }
+    this.scrollDown();
   }
 
   onKeydown(event: KeyboardEvent): void {
@@ -125,6 +130,25 @@ export class ChatComponent implements OnInit {
 
   onIdpChanged(idp: Idp): void {
     this.idp.set(idp);
+  }
+
+  /** Тестовый план: тот же ход диалога, только без обращения к модели. */
+  onDemoRequested(): void {
+    if (this.sending()) {
+      return;
+    }
+    this.sending.set(true);
+    this.api.demoDraft(this.sessionId).subscribe({
+      next: (turn) => {
+        this.sending.set(false);
+        this.applyTurn(turn);
+      },
+      error: (response) => {
+        this.sending.set(false);
+        this.snackBar.open(
+          response?.error?.error ?? 'Не удалось собрать тестовый план', 'Ок', { duration: 6000 });
+      }
+    });
   }
 
   get progress(): number {

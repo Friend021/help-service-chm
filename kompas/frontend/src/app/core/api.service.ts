@@ -20,6 +20,11 @@ export class ApiService {
     return this.http.post<TurnResponse>(`${this.base}/sessions/${sessionId}/messages`, { text });
   }
 
+  /** Черновик-болванка без диалога — для демонстрации переноса в «ПЛАН РАЗВИТИЯ». */
+  demoDraft(sessionId: number): Observable<TurnResponse> {
+    return this.http.post<TurnResponse>(`${this.base}/sessions/${sessionId}/demo-draft`, {});
+  }
+
   updateIdp(idpId: number, priorities: PriorityPatch[]): Observable<Idp> {
     return this.http.put<Idp>(`${this.base}/idp/${idpId}`, { priorities });
   }
