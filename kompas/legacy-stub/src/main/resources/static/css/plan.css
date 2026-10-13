@@ -1,313 +1,149 @@
-/* Верстка воспроизводит экран «Создать план развития» (docs/legacy-screenshot.png) */
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
-    color: #333;
-    background: #fff;
+/* Дизайн-система RE Team для формы «Создать ИПР» */
+:root{
+  --topbar:#262b33; --logo:#e82c49; --subbar:#e8ebef;
+  --page:#ffffff; --ink:#2b3542; --muted:#8a94a0; --muted-2:#9aa6b0;
+  --card-dark:#3a4350; --panel:#eef1f4; --surface:#ffffff;
+  --line:#dfe3e8; --field-line:#d4dae0;
+  --link:#2567e0; --teal:#15a58e;
+  --warn-bg:#fcebeb; --warn-line:#f3c9c9; --warn-ink:#d23b3b;
+  --chip:#e6e9ed; --blue-soft:#e9f1fe; --bar-dark:#2b333d;
 }
+*{box-sizing:border-box}
+body{margin:0;background:#f3f5f7;color:var(--ink);
+  font-family:"Inter",system-ui,Arial,sans-serif;font-size:14px;line-height:1.5}
 
-/* ---------- A.2 Красная шапка ---------- */
-.header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    height: 52px;
-    padding: 0 22px;
-    background: #E30613;
-    color: #fff;
+.app{max-width:1320px;margin:0 auto;background:var(--page)}
+
+/* Верхняя тёмная панель */
+.topbar{display:flex;align-items:center;gap:22px;background:var(--topbar);color:#cdd3da;padding:0 22px;height:56px}
+.topbar .grid{width:22px;height:22px;opacity:.7}
+.logo{background:var(--logo);color:#fff;font-weight:700;font-size:15px;padding:6px 10px;border-radius:7px}
+.topnav{display:flex;gap:22px;font-size:14px}
+.topnav a{color:#cdd3da;text-decoration:none}
+.topnav a:hover{color:#fff}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.header__user{background:transparent;color:#cdd3da;border:1px solid #434a54;border-radius:7px;
+  padding:7px 10px;font:inherit;cursor:pointer}
+.header__user option{color:#2b3542}
+.topbar .ic{width:20px;height:20px;color:#cdd3da}
+
+/* Под-панель */
+.subbar{display:flex;align-items:center;gap:14px;background:var(--subbar);padding:0 22px;height:58px;border-bottom:1px solid #dce0e5}
+.subbar .gear{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center;border:1px solid #d7dbe0}
+.subbar .title{font-weight:700;font-size:17px}
+.subnav{margin-left:auto;display:flex;gap:26px;font-size:14px}
+.subnav a{color:var(--muted);text-decoration:none;font-weight:500}
+.subnav a.on{color:var(--ink);font-weight:600}
+
+/* Каркас: main + сайдбар */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 352px;gap:0}
+.main{padding:26px 30px 36px}
+.side{background:#fff;border-left:1px solid var(--line);padding:22px 20px 26px;display:flex;flex-direction:column;gap:16px}
+
+.back{display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-weight:500;font-size:13.5px}
+.back svg{width:16px;height:16px}
+h1.page{font-size:30px;font-weight:700;letter-spacing:-.01em;margin:14px 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 0}
+
+/* Точка входа в Компас */
+.cta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 20px}
+.compass-cta{display:inline-flex;align-items:center;gap:9px;background:var(--teal);color:#fff;
+  text-decoration:none;border:0;border-radius:9px;padding:12px 18px;font:inherit;font-weight:600;font-size:14.5px;cursor:pointer}
+.compass-cta:hover{background:#12907c}
+.compass-cta svg{width:19px;height:19px}
+.cta-row .hint{color:var(--muted);font-size:13px;max-width:36ch}
+
+.rule{height:1px;background:var(--line);margin:0 0 22px}
+
+.notice{display:flex;align-items:center;gap:12px;background:#eef6f3;border:1px solid #cfe6de;
+  color:#13705e;border-radius:10px;padding:13px 16px;font-weight:600;font-size:14px;margin-bottom:22px}
+.notice--error{display:flex;align-items:center;gap:12px;background:var(--warn-bg);border:1px solid var(--warn-line);
+  color:var(--warn-ink);border-radius:10px;padding:14px 18px;font-weight:600;font-size:14px;margin-bottom:22px}
+
+/* Тёмная секция-карточка */
+.dcard{background:var(--card-dark);border-radius:12px;padding:22px 24px;margin-bottom:12px}
+.dcard h2{color:#fff;font-size:19px;font-weight:600;margin:0 0 16px}
+.seclabel{font-size:21px;font-weight:700;margin:26px 0 8px}
+.secdesc{color:var(--muted);font-size:13.5px;max-width:72ch;margin:0 0 16px}
+
+.field{width:100%;background:#fff;border:1px solid var(--field-line);border-radius:8px;
+  padding:14px 15px;font:inherit;color:var(--ink);outline:none}
+.field::placeholder{color:var(--muted-2)}
+.field:focus{border-color:#aab9e8;box-shadow:0 0 0 3px rgba(37,103,224,.12)}
+textarea.field{resize:vertical;min-height:84px}
+.flabel{color:#fff;font-size:13.5px;margin:4px 0 8px}
+
+select.field,select.goal-select{appearance:none;cursor:pointer;color:var(--ink);padding-right:40px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237b8794' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center}
+select.field:invalid{color:var(--muted-2)}
+.inrow{display:grid;grid-template-columns:1fr 240px;gap:14px;margin-bottom:16px}
+
+/* Светлый вложенный блок «Конкретные действия» */
+.acts{background:var(--panel);border-radius:0 0 12px 12px;margin:-12px 0 12px;padding:20px 22px 22px}
+.acts-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;margin-bottom:14px}
+.acts-h .ln{flex:1;height:1px;background:#d7dde2}
+.wcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:12px}
+.wcard h3{font-size:16px;font-weight:600;margin:0 0 14px}
+.wcard .ln{height:1px;background:var(--line);margin:0 0 14px}
+.arow{display:grid;grid-template-columns:1fr 220px 220px;gap:12px;margin-bottom:14px}
+.mini{color:var(--muted);font-size:12.5px;margin:2px 0 7px}
+
+.addlink{display:inline-flex;align-items:center;gap:6px;color:var(--link);font-weight:600;font-size:14px;
+  background:none;border:0;cursor:pointer}
+.addlink svg{width:16px;height:16px;stroke-width:2.4}
+.addright{display:flex;justify-content:flex-end;margin:10px 0 2px}
+
+/* Таблица действий (перенос из Компаса) */
+.actions-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:4px 0 8px;background:#fff;
+  border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.actions-table th,.actions-table td{border-bottom:1px solid var(--line);padding:12px 14px;vertical-align:middle;text-align:left;font-size:13.5px}
+.actions-table thead th{background:#f3f5f7;color:#4a5560;font-weight:600;text-align:center}
+.actions-table tbody tr:last-child td{border-bottom:0}
+.col-num{width:5%}.col-instrument{width:22%}.col-action{width:33%}.col-due{width:12%}.col-status{width:12%}.col-comment{width:16%}
+.cell-num{text-align:center;color:var(--muted);font-weight:600}
+.cell-due,.cell-status{text-align:center;color:#4a5560}
+
+/* Нижняя тёмная панель */
+.actionbar{display:flex;align-items:center;gap:26px;background:var(--bar-dark);color:#fff;border-radius:10px;padding:16px 22px;margin:22px 0 10px}
+.actionbar button,.actionbar a{display:inline-flex;align-items:center;gap:9px;background:none;border:0;color:#fff;
+  text-decoration:none;font:inherit;font-weight:500;cursor:pointer}
+.actionbar svg{width:18px;height:18px}
+.actionbar .disabled{color:#8793a0;margin-left:auto;cursor:not-allowed}
+
+/* Правый сайдбар */
+.statcard{border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(25,35,50,.05)}
+.badge{display:inline-block;background:var(--teal);color:#fff;font-weight:700;font-size:12px;padding:4px 10px;border-radius:7px;letter-spacing:.03em}
+.statcard h4{font-size:15px;font-weight:600;margin:14px 0 12px}
+.status{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.status li{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px}
+.status li .m{width:13px;height:13px;border-radius:3px;background:#c4cbd3;flex:none}
+.status li.on{color:var(--ink);font-weight:600}
+.status li.on .m{background:var(--card-dark)}
+.mgr{margin-top:16px;color:var(--muted);font-size:13px}
+.mgr b{display:block;color:var(--ink);font-weight:500;margin-top:3px}
+.sbtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:13px 16px;font:inherit;font-weight:600;color:var(--ink);cursor:pointer}
+.sbtn svg{width:18px;height:18px}
+.tree{font-size:14px}
+.tree .d{display:flex;align-items:center;gap:8px;font-weight:600;padding:6px 0}
+.tree .chip{background:var(--chip);color:var(--muted);font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:5px;letter-spacing:.03em;margin-left:auto}
+.tree .a{display:flex;align-items:center;gap:8px;color:var(--muted);padding:6px 0 6px 22px}
+.tree .a .dots{margin-left:auto}
+.empbtn{display:flex;align-items:center;gap:10px;background:var(--blue-soft);color:var(--link);border:0;border-radius:10px;
+  padding:14px 16px;font:inherit;font-weight:600;cursor:pointer;margin-top:auto}
+.empbtn svg{width:19px;height:19px}
+
+svg.ic,.icon{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+@media(max-width:1000px){
+  .layout{grid-template-columns:1fr}
+  .side{border-left:0;border-top:1px solid var(--line)}
+  .inrow,.arow{grid-template-columns:1fr}
 }
-
-.header__title {
-    font-weight: bold;
-    font-size: 15px;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-.header__label {
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-.header__user {
-    width: 330px;
-    height: 28px;
-    padding: 0 8px;
-    border: none;
-    border-radius: 3px;
-    background: #fff;
-    color: #333;
-    font-family: inherit;
-    font-size: 14px;
-}
-
-/* ---------- A.1 Каркас ---------- */
-.layout {
-    display: flex;
-    align-items: flex-start;
-    padding-top: 18px;
-}
-
-/* ---------- A.3 Боковое меню ---------- */
-.sidebar {
-    flex: 0 0 250px;
-    padding: 4px 0 0 34px;
-}
-
-.sidebar__item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #777;
-    font-size: 14px;
-}
-
-.sidebar__marker {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #bdbdbd;
-}
-
-.main {
-    flex: 1 1 auto;
-    padding-right: 75px;
-}
-
-/* ---------- A.4 Карточка ---------- */
-.card {
-    border: 1px solid #e3e3e3;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-    background: #fff;
-    padding: 24px 28px 42px;
-}
-
-.card__title {
-    margin: 4px 0 22px;
-    text-align: center;
-    font-size: 19px;
-    font-weight: bold;
-    color: #1F6E80;
-}
-
-.card__head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-}
-
-.meta__row {
-    margin-bottom: 9px;
-    font-size: 15px;
-}
-
-.meta__label {
-    font-weight: bold;
-    color: #1F6E80;
-}
-
-.meta__value {
-    color: #333;
-}
-
-.link {
-    color: #1155cc;
-    text-decoration: underline;
-    font-size: 15px;
-}
-
-.section-title {
-    margin: 46px 0 14px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
-    color: #1F6E80;
-}
-
-/* ---------- A.5 Таблица приоритетов ---------- */
-.priorities {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-}
-
-.priorities th,
-.priorities td {
-    border: 1px solid #dcdcdc;
-    padding: 10px 12px;
-    vertical-align: middle;
-}
-
-.priorities thead th {
-    background: #f5f5f5;
-    text-align: center;
-    font-weight: normal;
-    color: #333;
-}
-
-.col-priority { width: 6%; }
-.col-goal     { width: 28%; }
-.col-what     { width: 62%; }
-.col-actions  { width: 4%; }
-
-.cell-priority {
-    text-align: center;
-    color: #1F6E80;
-}
-
-.goal-select {
-    width: 100%;
-    height: 28px;
-    padding: 2px 6px;
-    border: 1px solid #c9c9c9;
-    border-radius: 3px;
-    background: #fff;
-    font-family: inherit;
-    font-size: 14px;
-}
-
-.cell-actions {
-    text-align: center;
-}
-
-.remove-row {
-    border: none;
-    background: none;
-    color: #e53935;
-    font-size: 17px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0;
-}
-
-.add-row-cell {
-    padding: 10px 12px;
-}
-
-.add-row {
-    border: none;
-    background: none;
-    padding: 0;
-    color: #1155cc;
-    text-decoration: underline;
-    font-family: inherit;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-/* ---------- A.6 Кнопки ---------- */
-.actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 58px;
-}
-
-.btn {
-    display: inline-block;
-    padding: 9px 18px;
-    border: none;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.btn--primary {
-    background: #3A9BB0;
-    color: #fff;
-}
-
-.btn--kompas {
-    background: #fff;
-    color: #1F6E80;
-    border: 1px solid #3A9BB0;
-}
-
-.btn--kompas:hover {
-    background: #eef7f9;
-}
-
-/* ---------- A.7 Футер ---------- */
-.footer {
-    margin: 18px 0 28px;
-    text-align: center;
-    color: #9a9a9a;
-    font-size: 12px;
-    font-family: "Times New Roman", Times, serif;
-}
-
-/* ---------- Возврат плана из «Компаса» ---------- */
-.notice {
-    margin: 20px 0 0;
-    padding: 9px 14px;
-    border-radius: 4px;
-    background: #eaf4f7;
-    border: 1px solid #cde3ea;
-    color: #1F6E80;
-    font-size: 13px;
-}
-
-.notice--error {
-    background: #fdecea;
-    border-color: #f5c6c2;
-    color: #b3261e;
-}
-
-.cell-activities {
-    margin-top: 6px;
-    color: #777;
-    font-size: 13px;
-}
-
-.cell-competencies {
-    color: #1F6E80;
-}
-
-.cell-goal {
-    margin-top: 5px;
-    line-height: 1.45;
-}
-
-/* ---------- Блок развивающих действий под целью ---------- */
-.actions-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    margin-bottom: 8px;
-}
-
-.actions-table th,
-.actions-table td {
-    border: 1px solid #dcdcdc;
-    padding: 10px 12px;
-    vertical-align: middle;
-}
-
-.actions-table thead th {
-    background: #f5f5f5;
-    text-align: center;
-    font-weight: normal;
-    color: #333;
-}
-
-.col-num { width: 5%; }
-.col-instrument { width: 22%; }
-.col-action { width: 33%; }
-.col-due { width: 12%; }
-.col-status { width: 10%; }
-.col-comment { width: 18%; }
-
-.cell-due,
-.cell-status {
-    text-align: center;
-    color: #4a5256;
+@media(max-width:620px){
+  .topnav,.subnav{display:none}
+  .main{padding:20px 16px 28px}
+  h1.page{font-size:24px}
+  .actions-table{display:block;overflow-x:auto}
 }
