@@ -1,280 +1,89 @@
 .panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  background: #fff;
-  border: 1px solid var(--kompas-border);
-  border-radius: 12px;
-  overflow: hidden;
+  display: flex; flex-direction: column; height: 100%; min-height: 0;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
 }
 
 .panel__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--kompas-border);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid var(--line);
 }
-
-.panel__head h2 {
-  margin: 0 0 6px;
-  font-size: 16px;
-  color: var(--kompas-teal);
-}
-
-.panel__meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.panel__role {
-  font-size: 13px;
-  color: #6b7478;
-}
-
+.panel__head h2 { margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--ink); }
+.panel__meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.panel__role { font-size: 13px; color: var(--muted); }
 .badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 10px;
-  background: #e7f3f6;
-  color: var(--kompas-teal);
-  font-size: 12px;
+  display: inline-block; padding: 3px 10px; border-radius: 7px;
+  background: var(--teal); color: #fff; font-size: 11.5px; font-weight: 700; letter-spacing: .03em;
 }
+.badge--approval { background: #e9a23b; }
+.panel__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-.badge--approval {
-  background: #fdf1dd;
-  color: #8a5a00;
+/* Material-кнопки → RE Team */
+::ng-deep .panel__actions .mat-mdc-unelevated-button.mat-primary {
+  --mdc-filled-button-container-color: var(--teal);
+  --mdc-filled-button-label-text-color: #fff;
 }
-
-.panel__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+::ng-deep .panel__actions .mat-mdc-outlined-button {
+  --mdc-outlined-button-label-text-color: var(--ink);
+  --mdc-outlined-button-outline-color: var(--field-line);
 }
+::ng-deep .mat-mdc-button .mat-icon, ::ng-deep .mat-mdc-unelevated-button .mat-icon,
+::ng-deep .mat-mdc-outlined-button .mat-icon { font-size: 18px; width: 18px; height: 18px; }
 
-/* Область прокрутки: шапка панели зафиксирована, скроллится только содержимое */
-.panel__body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+.panel__body { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; }
+
+/* Пустое состояние + тестовый план */
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; flex: 1; padding: 40px 24px; color: #8a9296; text-align: center; }
+.empty mat-icon { font-size: 40px; width: 40px; height: 40px; color: #cfd7da; }
+.empty__hint { font-size: 13px; max-width: 320px; }
+.empty__demo { margin-top: 14px; }
+::ng-deep .empty__demo.mat-mdc-outlined-button {
+  --mdc-outlined-button-label-text-color: var(--teal);
+  --mdc-outlined-button-outline-color: #a9ddd2;
 }
+.empty__note { max-width: 340px; font-size: 12px; color: #a3abae; }
 
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex: 1;
-  padding: 40px 24px;
-  color: #8a9296;
-  text-align: center;
-}
-
-.empty mat-icon {
-  font-size: 40px;
-  width: 40px;
-  height: 40px;
-  color: #cfd7da;
-}
-
-.empty__hint {
-  font-size: 13px;
-  max-width: 320px;
-}
-
-.priorities {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.priorities th,
-.priorities td {
-  border: 1px solid #e6eaec;
-  padding: 12px;
-  vertical-align: top;
-  text-align: left;
-}
-
+/* Таблица приоритетов */
+.priorities { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.priorities th, .priorities td { border: 1px solid #e6eaec; padding: 12px; vertical-align: top; text-align: left; }
 .priorities thead th {
-  position: sticky;
-  top: 0;
-  background: #f5f7f8;
-  font-weight: normal;
-  text-align: center;
-  color: #4a5256;
-  z-index: 1;
+  position: sticky; top: 0; z-index: 1; background: #f3f5f7;
+  color: #4a5560; font-weight: 600; text-align: center;
 }
+.col-order { width: 9%; } .col-goal { width: 44%; } .col-what { width: 42%; } .col-actions { width: 5%; }
+.cell-order { text-align: center; color: var(--teal); font-weight: 700; }
+.cell-actions { text-align: center; }
 
-/* Колонка приоритета должна вмещать заголовок целиком при table-layout: fixed */
-.col-order { width: 12%; }
-.col-goal { width: 42%; }
-.col-what { width: 41%; }
-.col-actions { width: 5%; }
-
-.cell-order {
-  text-align: center;
-  color: var(--kompas-teal);
-  font-weight: bold;
-}
-
-.cell-actions {
-  text-align: center;
-}
-
-.goal {
-  font-size: 14px;
-  line-height: 1.45;
-  white-space: pre-line;
-}
-
-.goal-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #c9d1d4;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-  resize: vertical;
-}
-
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.3;
-}
-
-.chip--competency {
-  background: #e7f3f6;
-  color: #12525f;
-}
-
-
-.chip__remove,
-.remove-row {
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  color: #c0392b;
-  font-size: 13px;
-  line-height: 1;
-}
-
-.remove-row {
-  font-size: 15px;
-}
-
-/* Категория из выпадающего списка формы «ПЛАН РАЗВИТИЯ» */
+.goal { font-size: 14px; line-height: 1.45; white-space: pre-line; }
+.goal-input { width: 100%; padding: 8px; border: 1px solid var(--field-line); border-radius: 6px;
+  font-family: inherit; font-size: 14px; resize: vertical; }
 .goal-category {
-  display: inline-block;
-  margin-bottom: 6px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: #eef2f4;
-  color: #4a5256;
-  font-size: 12px;
+  display: inline-block; margin-bottom: 6px; padding: 2px 9px; border-radius: 10px;
+  background: #eef1f4; color: #4a5560; font-size: 12px;
 }
 
-/* ---------- Блок «как развиваем» ---------- */
-.actions {
-  margin-top: 12px;
-}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 10px; font-size: 12.5px; line-height: 1.3; }
+.chip--competency { background: #e6f3f0; color: #13705e; }
+.chip--instrument { background: #eef0fb; color: #4b43a6; }
+.chip__remove, .remove-row { border: 0; background: none; padding: 0; cursor: pointer;
+  color: #c0392b; font-size: 13px; line-height: 1; }
+.remove-row { font-size: 15px; }
 
-.actions__title {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #8a9296;
-  margin-bottom: 6px;
+/* Блок «как развиваем» */
+.actions { margin-top: 12px; }
+.actions__title { font-size: 12px; text-transform: uppercase; letter-spacing: .4px;
+  color: var(--muted); margin-bottom: 6px; }
+.action { padding: 8px 0; border-top: 1px solid #eef1f2; }
+.action:first-of-type { border-top: 0; }
+.action__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.action__status { font-size: 12px; color: var(--muted); }
+.action__text-view { font-size: 13.5px; line-height: 1.4; }
+.action__date-view { margin-top: 2px; font-size: 13px; color: var(--muted); }
+.action__activity { margin-top: 3px; font-size: 12px; color: #6b7478; font-style: italic; }
+.action__instrument, .action__text, .action__date {
+  padding: 5px 7px; border: 1px solid var(--field-line); border-radius: 4px;
+  font-family: inherit; font-size: 13px;
 }
-
-.action {
-  padding: 8px 0;
-  border-top: 1px solid #eef1f2;
-}
-
-.action:first-of-type {
-  border-top: none;
-}
-
-.action__head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-
-.chip--instrument {
-  background: #f1f0fb;
-  color: #443f6b;
-}
-
-.action__status {
-  font-size: 12px;
-  color: #8a9296;
-}
-
-.action__text-view {
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.action__date-view {
-  margin-top: 2px;
-  font-size: 13px;
-  color: #8a9296;
-}
-
-.action__activity {
-  margin-top: 3px;
-  font-size: 12px;
-  color: #6b7478;
-  font-style: italic;
-}
-
-.action__instrument,
-.action__text,
-.action__date {
-  padding: 5px 7px;
-  border: 1px solid #c9d1d4;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 13px;
-}
-
-.action__text {
-  width: 100%;
-  margin-bottom: 4px;
-}
-
-.empty__demo {
-  margin-top: 14px;
-}
-
-.empty__note {
-  max-width: 340px;
-  font-size: 12px;
-  color: #a3abae;
-}
+.action__text { width: 100%; margin-bottom: 4px; }

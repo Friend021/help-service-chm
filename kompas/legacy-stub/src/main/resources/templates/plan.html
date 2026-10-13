@@ -2,267 +2,178 @@
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>План развития</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Создать ИПР</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" th:href="@{/css/plan.css}">
 </head>
 <body>
 
-<!-- A.2 Красная шапка -->
-<div class="header">
-    <span class="header__title">План развития</span>
-    <span class="header__label">Вы зашли как</span>
-    <!-- Белое поле из оригинала: в макете это переключатель демо-сотрудника -->
-    <select class="header__user" id="employeePicker"
-            onchange="location.href='/?employee=' + encodeURIComponent(this.value);">
-        <option th:each="e : ${employees}"
-                th:value="${e.externalId}"
-                th:text="${e.fullName}"
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="i-grid"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></g>
+  <g id="i-user"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></g>
+  <g id="i-bell"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></g>
+  <g id="i-gear"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5M12 18.5V21M4.2 7l2.2 1.3M17.6 15.7 19.8 17M4.2 17l2.2-1.3M17.6 8.3 19.8 7"/></g>
+  <g id="i-back"><path d="M15 18l-6-6 6-6"/></g>
+  <g id="i-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M8 3v5h8"/></g>
+  <g id="i-mail"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></g>
+  <g id="i-chevr"><path d="M9 6l6 6-6 6"/></g>
+  <g id="i-card"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M13 9h5M13 13h5M4 17c1-2 2.5-3 4-3s3 1 4 3"/></g>
+  <g id="i-compass"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2 5.2-5.2 2 2-5.2z"/></g>
+  <g id="i-plus"><path d="M12 5v14M5 12h14"/></g>
+</defs></svg>
+
+<div class="app">
+  <div class="topbar">
+    <svg class="ic grid"><use href="#i-grid"/></svg>
+    <span class="logo">RE Team</span>
+    <nav class="topnav"><a href="#">Компания</a><a href="#">Подразделение</a><a href="#">Сотрудник</a></nav>
+    <div class="right">
+      <select class="header__user" id="employeePicker"
+              onchange="location.href='/?employee=' + encodeURIComponent(this.value);">
+        <option th:each="e : ${employees}" th:value="${e.externalId}" th:text="${e.fullName}"
                 th:selected="${e.externalId == employee.externalId}"></option>
-    </select>
-</div>
+      </select>
+      <svg class="ic"><use href="#i-user"/></svg>
+      <svg class="ic"><use href="#i-bell"/></svg>
+    </div>
+  </div>
 
-<div class="layout">
-    <!-- A.3 Боковое меню -->
-    <aside class="sidebar">
-        <div class="sidebar__item">
-            <span class="sidebar__marker"></span>
-            <span>Создать ИПР</span>
-        </div>
-    </aside>
+  <div class="subbar">
+    <span class="gear"><svg class="ic" style="width:17px;height:17px"><use href="#i-gear"/></svg></span>
+    <span class="title">Оценка</span>
+    <nav class="subnav"><a href="#">Система оценки</a><a href="#">Календарь оценок</a><a class="on" href="#">План развития</a><a href="#">Обратная связь</a></nav>
+  </div>
 
+  <div class="layout">
     <main class="main">
-        <!-- A.4 Карточка -->
-        <section class="card">
-            <h1 class="card__title">Создать план развития</h1>
+      <a class="back" href="#"><svg class="ic"><use href="#i-back"/></svg> На главную</a>
+      <h1 class="page">Создать ИПР</h1>
+      <p class="sub">Вы можете создать ИПР на себя</p>
 
-            <div class="card__head">
-                <div class="meta">
-                    <div class="meta__row">
-                        <span class="meta__label">Дата составления:</span>
-                        <span class="meta__value" th:text="${today}">22.09.2026</span>
-                    </div>
-                    <div class="meta__row">
-                        <span class="meta__label">Сотрудник:</span>
-                        <span class="meta__value" th:text="${employee.fullName}">—</span>
-                    </div>
-                    <div class="meta__row">
-                        <span class="meta__label">Руководитель:</span>
-                        <span class="meta__value" th:text="${employee.managerFullName}">—</span>
-                    </div>
-                </div>
-                <a class="link" href="#" onclick="return false;">Карта развивающих действий</a>
+      <div class="cta-row">
+        <a class="compass-cta" th:href="@{/kompas(employee=${employee.externalId})}">
+          <svg><use href="#i-compass"/></svg> Создать через Компас
+        </a>
+        <span class="hint">Соберите план в диалоге — рекомендации из справочников компании</span>
+      </div>
+      <div class="rule"></div>
+
+      <!-- Возврат плана из «Компаса» -->
+      <div class="notice--error" th:if="${importError}" th:text="${importError}"></div>
+      <div class="notice" th:if="${imported}">
+        Приоритеты перенесены из «Компаса»
+        <span th:if="${imported.targetRole}" th:text="'· целевая роль: ' + ${imported.targetRole}"></span>
+      </div>
+
+      <div class="dcard">
+        <h2>Ключевая цель создания ИПР</h2>
+        <input class="field" placeholder="- Напишите цель создания ИПР -">
+      </div>
+
+      <div class="seclabel">Основные направления развития</div>
+      <p class="secdesc">Вы можете добавлять сразу несколько направлений развития в ИПР, добавляя к каждому конкретные действия. Кол-во направлений не ограничено, главное чтобы они соответствовали ключевой цели и результату.</p>
+
+      <!-- ===== Перенос из «Компаса»: каждое направление — карточкой ===== -->
+      <div th:if="${imported}">
+        <div th:each="row : ${imported.rows}">
+          <div class="dcard">
+            <h2 th:text="'Направление развития ' + ${row.order}">Направление развития 1</h2>
+            <div class="inrow">
+              <select class="field">
+                <option value=""></option>
+                <option th:each="c : ${goalCategories}" th:text="${c}" th:selected="${c == row.category}"></option>
+              </select>
+              <select class="field"><option>- Приоритет -</option></select>
             </div>
-
-            <!-- Возврат плана из «Компаса» -->
-            <div class="notice notice--error" th:if="${importError}" th:text="${importError}"></div>
-            <div class="notice" th:if="${imported}">
-                Приоритеты перенесены из «Компаса»
-                <span th:if="${imported.targetRole}"
-                      th:text="'· целевая роль: ' + ${imported.targetRole}"></span>
-            </div>
-
-            <h2 class="section-title">Приоритеты развития</h2>
-
-            <!-- A.5 Таблица приоритетов -->
-            <table class="priorities" id="priorities">
-                <colgroup>
-                    <col class="col-priority">
-                    <col class="col-goal">
-                    <col class="col-what">
-                    <col class="col-actions">
-                </colgroup>
-                <thead>
-                <tr>
-                    <th>Приоритет</th>
-                    <th>Цели по развитию</th>
-                    <th>Что развиваем?</th>
-                    <th></th>
+            <div class="flabel">Что важно развить внутри направления</div>
+            <textarea class="field" th:text="${row.competencies} + (${row.goal} != '' ? ' — ' + ${row.goal} : '')"></textarea>
+          </div>
+          <div class="acts">
+            <div class="acts-h">Конкретные действия <span class="ln"></span></div>
+            <table class="actions-table">
+              <colgroup><col class="col-num"><col class="col-instrument"><col class="col-action"><col class="col-due"><col class="col-status"><col class="col-comment"></colgroup>
+              <thead><tr><th>№</th><th>Инструмент развития<br>(как развиваем)</th><th>Конкретное действие</th><th>Планируемый<br>срок</th><th>Статус</th><th>Комментарий</th></tr></thead>
+              <tbody>
+                <tr th:each="act : ${row.actions}">
+                  <td class="cell-num" th:text="${act.number}">1</td>
+                  <td><select class="field"><option value=""></option><option th:each="ins : ${instruments}" th:text="${ins}" th:selected="${ins == act.instrument}"></option></select></td>
+                  <td th:text="${act.action}"></td>
+                  <td class="cell-due" th:text="${act.dueDate}"></td>
+                  <td class="cell-status" th:text="${act.status}">Не начато</td>
+                  <td></td>
                 </tr>
-                </thead>
-                <!-- Строки, перенесённые из «Компаса»: разложены по колонкам формы -->
-                <tbody id="prioritiesBody" th:if="${imported}">
-                <tr th:each="row, it : ${imported.rows}">
-                    <td class="cell-priority" th:text="${row.order}">1</td>
-                    <!-- Колонка — выпадающий список: из «Компаса» приходит категория справочника -->
-                    <td>
-                        <select class="goal-select">
-                            <option value=""></option>
-                            <option th:each="c : ${goalCategories}" th:text="${c}"
-                                    th:selected="${c == row.category}"></option>
-                        </select>
-                    </td>
-                    <!-- Свободная колонка: компетенции и сама цель по SMART -->
-                    <td>
-                        <div class="cell-competencies" th:text="${row.competencies}"></div>
-                        <div class="cell-goal" th:text="${row.goal}"></div>
-                    </td>
-                    <td class="cell-actions">
-                        <button th:unless="${it.first}" type="button" class="remove-row"
-                                title="Удалить строку">&#10006;</button>
-                    </td>
+                <tr th:if="${#lists.isEmpty(row.actions)}">
+                  <td class="cell-num">1</td>
+                  <td><select class="field"><option value=""></option><option th:each="ins : ${instruments}" th:text="${ins}"></option></select></td>
+                  <td></td><td></td><td class="cell-status">Не начато</td><td></td>
                 </tr>
-                </tbody>
-
-                <tbody id="prioritiesBody" th:unless="${imported}">
-                <tr>
-                    <td class="cell-priority">1</td>
-                    <td>
-                        <select class="goal-select">
-                            <option value=""></option>
-                            <option th:each="c : ${goalCategories}" th:text="${c}"></option>
-                        </select>
-                    </td>
-                    <td></td>
-                    <td class="cell-actions"></td>
-                </tr>
-                <tr>
-                    <td class="cell-priority">2</td>
-                    <td>
-                        <select class="goal-select">
-                            <option value=""></option>
-                            <option th:each="c : ${goalCategories}" th:text="${c}"></option>
-                        </select>
-                    </td>
-                    <td></td>
-                    <td class="cell-actions">
-                        <button type="button" class="remove-row" title="Удалить строку">&#10006;</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="cell-priority">3</td>
-                    <td>
-                        <select class="goal-select">
-                            <option value=""></option>
-                            <option th:each="c : ${goalCategories}" th:text="${c}"></option>
-                        </select>
-                    </td>
-                    <td></td>
-                    <td class="cell-actions">
-                        <button type="button" class="remove-row" title="Удалить строку">&#10006;</button>
-                    </td>
-                </tr>
-                </tbody>
-                <tfoot>
-                <tr>
-                    <td class="add-row-cell" colspan="4">
-                        <button type="button" class="add-row" id="addRow">Добавить строку</button>
-                    </td>
-                </tr>
-                </tfoot>
+              </tbody>
             </table>
+          </div>
+        </div>
+      </div>
 
-            <!-- Блок развивающих действий под каждой целью.
-                 th:each выполняется раньше th:if, поэтому условие вынесено наружу. -->
-            <div th:if="${imported}">
-            <div th:each="row : ${imported.rows}">
-                <h2 class="section-title" th:text="${row.title}">Что развиваем</h2>
-                <table class="actions-table">
-                    <colgroup>
-                        <col class="col-num">
-                        <col class="col-instrument">
-                        <col class="col-action">
-                        <col class="col-due">
-                        <col class="col-status">
-                        <col class="col-comment">
-                    </colgroup>
-                    <thead>
-                    <tr>
-                        <th>№</th>
-                        <th>Инструмент развития<br>(как развиваем)</th>
-                        <th>Конкретное действие</th>
-                        <th>Планируемый<br>срок реализации</th>
-                        <th>Статус<br>выполнения</th>
-                        <th>Комментарий сотрудника</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="act : ${row.actions}">
-                        <td class="cell-priority" th:text="${act.number}">1</td>
-                        <td>
-                            <select class="goal-select">
-                                <option value=""></option>
-                                <option th:each="ins : ${instruments}" th:text="${ins}"
-                                        th:selected="${ins == act.instrument}"></option>
-                            </select>
-                        </td>
-                        <td th:text="${act.action}"></td>
-                        <td class="cell-due" th:text="${act.dueDate}"></td>
-                        <td class="cell-status" th:text="${act.status}">Не начато</td>
-                        <td></td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(row.actions)}">
-                        <td class="cell-priority">1</td>
-                        <td>
-                            <select class="goal-select">
-                                <option value=""></option>
-                                <option th:each="ins : ${instruments}" th:text="${ins}"></option>
-                            </select>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td class="cell-status">Не начато</td>
-                        <td></td>
-                    </tr>
-                    </tbody>
-                </table>
+      <!-- ===== Пустое создание ===== -->
+      <div th:unless="${imported}">
+        <div class="dcard">
+          <h2>Направление развития 1</h2>
+          <div class="inrow">
+            <select class="field"><option value="" selected>- Укажите направление развития -</option><option th:each="c : ${goalCategories}" th:text="${c}"></option></select>
+            <select class="field"><option value="" selected>- Приоритет -</option><option>Высокий</option><option>Средний</option><option>Низкий</option></select>
+          </div>
+          <div class="flabel">Напишите что важно развить внутри выбранного направления</div>
+          <textarea class="field"></textarea>
+        </div>
+        <div class="acts">
+          <div class="acts-h">Конкретные действия <span class="ln"></span></div>
+          <div class="wcard">
+            <h3>Действие 1</h3><div class="ln"></div>
+            <div class="arow">
+              <select class="field"><option value="" selected>- Укажите инструмент развития -</option><option th:each="ins : ${instruments}" th:text="${ins}"></option></select>
+              <input class="field" placeholder="- Срок выполнения -">
+              <select class="field"><option value="" selected>- Не начато -</option><option>В работе</option><option>Выполнено</option></select>
             </div>
-            </div>
+            <div class="mini">Опишите, что именно предстоит делать</div>
+            <input class="field" placeholder="- Что именно предстоит делать -" style="margin-bottom:14px">
+            <div class="mini">Оставьте комментарий для руководителя или наставника (не обязательно)</div>
+            <input class="field" placeholder="- Комментарий сотрудника -">
+            <div class="addright"><button type="button" class="addlink">Добавить действие <svg class="ic"><use href="#i-plus"/></svg></button></div>
+          </div>
+        </div>
+      </div>
 
-            <!-- A.6 Кнопки -->
-            <div class="actions">
-                <button type="button" class="btn btn--primary"
-                        onclick="alert('Заглушка старого сервиса: ИПР создаётся вручную.');">
-                    Создать ИПР
-                </button>
-                <!-- Единственный «живой» элемент: переход в «Компас» (раздел 8 ТЗ) -->
-                <a class="btn btn--kompas"
-                   th:href="@{/kompas(employee=${employee.externalId})}">
-                    Сформировать с помощью Компаса
-                </a>
-            </div>
-        </section>
+      <div class="addright"><button type="button" class="addlink">Добавить направление развития <svg class="ic"><use href="#i-plus"/></svg></button></div>
 
-        <!-- A.7 Футер -->
-        <div class="footer">© Отдел внутрикорпоративных проектов, УВА</div>
+      <div class="actionbar">
+        <button type="button"><svg class="ic"><use href="#i-back"/></svg> Назад</button>
+        <button type="button"><svg class="ic"><use href="#i-save"/></svg> Сохранить изменения</button>
+        <button type="button" class="disabled"><svg class="ic"><use href="#i-mail"/></svg> Отправить на согласование</button>
+      </div>
     </main>
+
+    <aside class="side">
+      <div class="statcard">
+        <span class="badge">ИПР</span>
+        <h4>Статус ИПР:</h4>
+        <ul class="status">
+          <li class="on"><span class="m"></span>Создание</li>
+          <li><span class="m"></span>Согласование</li>
+          <li><span class="m"></span>Согласован, не начат</li>
+          <li><span class="m"></span>В процессе выполнения</li>
+          <li><span class="m"></span>Выполнен</li>
+        </ul>
+        <div class="mgr">Руководитель:<b th:text="${employee.managerFullName}">—</b></div>
+      </div>
+      <button type="button" class="sbtn">Справка и советы <svg class="ic"><use href="#i-chevr"/></svg></button>
+      <div class="tree">
+        <div class="d"><svg class="ic" style="width:16px;height:16px"><use href="#i-chevr"/></svg>Направление 1 <span class="chip">НЕ ЗАПОЛНЕНО</span></div>
+        <div class="a">• Действие 1 <span class="dots">···</span></div>
+      </div>
+      <button type="button" class="empbtn"><svg class="ic"><use href="#i-card"/></svg> Информация о сотруднике</button>
+    </aside>
+  </div>
 </div>
-
-<script>
-    (function () {
-        var body = document.getElementById('prioritiesBody');
-
-        function renumber() {
-            Array.prototype.forEach.call(body.rows, function (row, index) {
-                row.cells[0].textContent = String(index + 1);
-                var button = row.cells[3].querySelector('.remove-row');
-                // Первую строку не удаляем (п. A.5)
-                if (index === 0 && button) {
-                    button.remove();
-                }
-            });
-        }
-
-        body.addEventListener('click', function (event) {
-            if (!event.target.classList.contains('remove-row')) {
-                return;
-            }
-            if (body.rows.length > 1) {
-                event.target.closest('tr').remove();
-                renumber();
-            }
-        });
-
-        document.getElementById('addRow').addEventListener('click', function () {
-            var template = body.rows[0].cloneNode(true);
-            template.cells[1].querySelector('select').value = '';
-            template.cells[2].textContent = '';
-            template.cells[3].innerHTML =
-                '<button type="button" class="remove-row" title="Удалить строку">&#10006;</button>';
-            body.appendChild(template);
-            renumber();
-        });
-    })();
-</script>
 
 </body>
 </html>

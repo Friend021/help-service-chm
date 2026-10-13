@@ -50,15 +50,30 @@ import { TokenService } from '../core/token.service';
       max-width: 520px;
       padding: 40px 32px;
       background: #fff;
-      border: 1px solid var(--kompas-border);
+      border: 1px solid var(--line);
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
     .brand {
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--kompas-teal);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .brand::before {
+      content: "К";
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--teal);
+      color: #fff;
+      font-size: 17px;
+      display: grid;
+      place-items: center;
     }
 
     .status {

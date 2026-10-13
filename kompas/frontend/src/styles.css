@@ -1,18 +1,20 @@
+/* Дизайн-система RE Team */
 :root {
-    --kompas-teal: #1F6E80;
-    --kompas-teal-light: #3A9BB0;
-    --kompas-border: #e2e6e8;
-    --kompas-bg: #f4f6f7;
+    --topbar:#262b33; --logo:#e82c49;
+    --ink:#2b3542; --muted:#8a94a0; --muted-2:#9aa6b0;
+    --card-dark:#3a4350; --panel:#eef1f4; --surface:#ffffff;
+    --line:#dfe3e8; --field-line:#d4dae0;
+    --link:#2567e0; --teal:#15a58e; --teal-dark:#12907c;
+    --blue-soft:#e9f1fe; --bar-dark:#2b333d;
+    --bg:#f3f5f7;
 }
 
 html, body {
     height: 100%;
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: var(--kompas-bg);
-    color: #2b3134;
+    font-family: "Inter", system-ui, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
 }
 
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }

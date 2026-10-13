@@ -1,0 +1,79 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="split" name="Разделение работ">
+    <mxGraphModel dx="1000" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="920" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="fe" value="FRONTEND · Angular SPA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F1F3;strokeColor=#1F6E80;fontColor=#0F3B43;fontStyle=1;fontSize=14;verticalAlign=top;align=left;spacingLeft=14;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="840" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="fe1" value="&lt;b&gt;Экран входа&lt;/b&gt;&lt;br&gt;приём токена, старт сессии" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="56" y="84" width="150" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="fe2" value="&lt;b&gt;Чат&lt;/b&gt;&lt;br&gt;диалог, индикатор стадии, стриминг" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="222" y="84" width="150" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="fe3" value="&lt;b&gt;Панель ИПР&lt;/b&gt;&lt;br&gt;живой черновик, ручная правка" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="388" y="84" width="150" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="fe4" value="&lt;b&gt;Действия с планом&lt;/b&gt;&lt;br&gt;экспорт, согласование, перенос" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="554" y="84" width="150" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="fe5" value="&lt;b&gt;Core&lt;/b&gt;&lt;br&gt;токен, интерсептор, модели" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="720" y="84" width="144" height="88" as="geometry" />
+        </mxCell>
+
+        <mxCell id="seam" value="API-контракт (REST) — шов между командами&#10;sessions · messages · idp · export · submit · handover · reference" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1F6E80;strokeColor=#15515E;fontColor=#FFFFFF;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="218" width="840" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="be" value="BACKEND · Java / Spring Boot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F1F3;strokeColor=#1F6E80;fontColor=#0F3B43;fontStyle=1;fontSize=14;verticalAlign=top;align=left;spacingLeft=14;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="306" width="840" height="222" as="geometry" />
+        </mxCell>
+        <mxCell id="be1" value="&lt;b&gt;Диалоговый движок&lt;/b&gt;&lt;br&gt;стадии, оркестрация, переходы в коде" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="56" y="350" width="195" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="be2" value="&lt;b&gt;Заземление / RAG&lt;/b&gt;&lt;br&gt;ретривер, векторное хранилище" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="267" y="350" width="195" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="be3" value="&lt;b&gt;LLM-слой&lt;/b&gt;&lt;br&gt;ai.redelephant за интерфейсом" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="478" y="350" width="195" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="be4" value="&lt;b&gt;Безопасность&lt;/b&gt;&lt;br&gt;вход (SSO), токен доступа" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="689" y="350" width="175" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="be5" value="&lt;b&gt;Доменная модель + БД&lt;/b&gt;&lt;br&gt;ИПР, приоритеты, действия" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="56" y="438" width="195" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="be6" value="&lt;b&gt;Экспорт&lt;/b&gt;&lt;br&gt;DOCX / JSON" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="267" y="438" width="195" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="be7" value="&lt;b&gt;Возврат в форму&lt;/b&gt;&lt;br&gt;запись в БД «ПЛАНА РАЗВИТИЯ»" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1F6E80;fontColor=#14323A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="478" y="438" width="195" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ex1" value="ai.redelephant&#10;(внутренняя LLM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE9F7;strokeColor=#6D5BA6;fontColor=#3B2F63;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="56" y="580" width="185" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="ex2" value="PostgreSQL&#10;+ векторное хранилище" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EEF0F2;strokeColor=#8A9499;fontColor=#26313A;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="267" y="580" width="185" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="ex3" value="Справочники компании&#10;ДИ, компетенции, активности" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E2;strokeColor=#C2851A;fontColor=#6B4708;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="478" y="580" width="185" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="ex4" value="Сервис «ПЛАН РАЗВИТИЯ»&#10;вход + возврат плана" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDECEC;strokeColor=#D8141F;fontColor=#7A0A0F;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="689" y="580" width="175" height="64" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eFS" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=block;endArrow=block;strokeColor=#1F6E80;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="fe" target="seam"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eSB" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=block;endArrow=block;strokeColor=#1F6E80;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="seam" target="be"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="eB1" value="диалог" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#6D5BA6;fontColor=#6D5BA6;fontSize=11;" edge="1" parent="1" source="be" target="ex1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eB2" value="хранилище" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#8A9499;fontColor=#8A9499;fontSize=11;" edge="1" parent="1" source="be" target="ex2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eB3" value="заземление" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#C2851A;fontColor=#C2851A;fontSize=11;" edge="1" parent="1" source="be" target="ex3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eB4" value="вход + возврат" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#D8141F;fontColor=#D8141F;fontSize=11;" edge="1" parent="1" source="be" target="ex4"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
