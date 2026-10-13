@@ -1,41 +1,55 @@
 .shell { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
 
+svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round;
+  stroke-linejoin: round; width: 20px; height: 20px; display: block; }
+
 /* Верхняя тёмная панель RE Team */
-.topbar {
-  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
-  background: var(--topbar); color: #cdd3da; padding: 0 24px; min-height: 56px;
-}
-.topbar__brand {
-  font-size: 16px; font-weight: 700; color: #fff; letter-spacing: .01em;
-  display: inline-flex; align-items: center; gap: 9px;
-}
-.topbar__brand::before {
-  content: "К"; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--teal); color: #fff; font-size: 13px; font-weight: 700;
-  display: grid; place-items: center;
-}
-.topbar__person { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
-.topbar__name { font-weight: 600; color: #fff; }
-.topbar__role { color: #aab2bb; }
-.topbar__arrow { color: #808b95; }
-.topbar__role--target {
-  color: #fff; padding: 3px 9px; border-radius: 7px;
-  background: rgba(21, 165, 142, .9); font-weight: 600;
-}
+.appbar { display: flex; align-items: center; gap: 22px; background: var(--topbar);
+  color: #cdd3da; padding: 0 22px; height: 56px; flex: none; }
+.appbar .grid { opacity: .7; }
+.logo { background: var(--logo); color: #fff; font-weight: 700; font-size: 15px;
+  padding: 6px 10px; border-radius: 7px; }
+.topnav { display: flex; gap: 22px; font-size: 14px; }
+.topnav a { color: #cdd3da; text-decoration: none; }
+.topnav a:hover { color: #fff; }
+.appbar__right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.appbar__user { font-size: 14px; color: #fff; }
+
+/* Под-панель */
+.subbar { display: flex; align-items: center; gap: 14px; background: var(--subbar);
+  padding: 0 22px; height: 56px; border-bottom: 1px solid #dce0e5; flex: none; }
+.subbar .gear { width: 30px; height: 30px; border-radius: 50%; background: #fff;
+  display: grid; place-items: center; border: 1px solid #d7dbe0; color: #3a4350; }
+.subbar .gear .ic { width: 17px; height: 17px; }
+.subbar__title { font-weight: 700; font-size: 17px; color: var(--ink); }
+.subnav { margin-left: auto; display: flex; gap: 24px; font-size: 14px; }
+.subnav a { color: var(--muted); text-decoration: none; font-weight: 500; }
+.subnav a.on { color: var(--ink); font-weight: 600; }
+
+/* Страница */
+.page { flex: 1; min-height: 0; display: flex; flex-direction: column;
+  max-width: 1320px; width: 100%; margin: 0 auto; padding: 22px 26px 0; }
+.back { display: inline-flex; align-items: center; gap: 8px; color: var(--muted);
+  text-decoration: none; font-weight: 500; font-size: 13.5px; }
+.back .ic { width: 16px; height: 16px; }
+.page-h { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin: 10px 0 4px; }
+.page-sub { display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  color: var(--muted); font-size: 13.5px; margin: 0; }
+.page-sub b { color: var(--ink); font-weight: 600; }
+.page-arrow { color: #808b95; }
+.kmark { width: 22px; height: 22px; border-radius: 50%; background: var(--teal); color: #fff;
+  font-size: 12px; font-weight: 700; display: grid; place-items: center; }
 
 /* Индикатор стадии */
-.stage { padding: 12px 24px 8px; background: #fff; border-bottom: 1px solid var(--line); }
+.stage { padding: 14px 0 10px; flex: none; }
 .stage__label { font-size: 13.5px; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
 ::ng-deep .stage .mat-mdc-progress-bar {
   --mdc-linear-progress-active-indicator-color: var(--teal);
-  --mdc-linear-progress-track-color: #e4e8ec;
-  border-radius: 4px; height: 6px;
+  --mdc-linear-progress-track-color: #e4e8ec; border-radius: 4px; height: 6px;
 }
 
-.content {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: 18px; flex: 1; min-height: 0; padding: 18px 24px 22px;
-}
+.content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 18px; flex: 1; min-height: 0; padding-bottom: 20px; }
 
 /* Чат */
 .chat { display: flex; flex-direction: column; min-height: 0; background: #fff;
@@ -45,33 +59,27 @@
 .chat__loading { color: var(--muted); font-size: 14px; }
 
 .bubble { max-width: 88%; padding: 11px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.5; }
-.bubble.bubble--user {
-  align-self: flex-end; background: var(--blue-soft); border-bottom-right-radius: 4px;
-}
+.bubble.bubble--user { align-self: flex-end; background: var(--blue-soft); border-bottom-right-radius: 4px; }
 .bubble:not(.bubble--user) { background: #f1f4f7; border-bottom-left-radius: 4px; }
 .bubble--typing { opacity: .6; }
-.bubble__author {
-  font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
-  color: var(--muted); margin-bottom: 4px;
-}
+.bubble__author { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); margin-bottom: 4px; }
 .bubble__text { white-space: pre-wrap; }
 
 .composer { display: flex; align-items: flex-end; gap: 10px; padding: 14px; border-top: 1px solid var(--line); }
-.composer textarea {
-  flex: 1; padding: 11px 13px; border: 1px solid var(--field-line); border-radius: 8px;
-  font-family: inherit; font-size: 14px; resize: none; outline: none; color: var(--ink);
-}
+.composer textarea { flex: 1; padding: 11px 13px; border: 1px solid var(--field-line);
+  border-radius: 8px; font-family: inherit; font-size: 14px; resize: none; outline: none; color: var(--ink); }
 .composer textarea:focus { border-color: #aab9e8; box-shadow: 0 0 0 3px rgba(37,103,224,.12); }
 ::ng-deep .composer .mat-mdc-unelevated-button.mat-primary {
   --mdc-filled-button-container-color: var(--card-dark);
-  --mdc-filled-button-label-text-color: #fff;
-  border-radius: 8px;
+  --mdc-filled-button-label-text-color: #fff; border-radius: 8px;
 }
 
 .side { min-height: 0; overflow: auto; }
 
 @media (max-width: 1000px) {
-  .content { grid-template-columns: 1fr; }
   .shell { height: auto; min-height: 100vh; }
+  .content { grid-template-columns: 1fr; }
   .chat__scroll { max-height: 52vh; }
+  .topnav, .subnav { display: none; }
 }
