@@ -1,0 +1,239 @@
+// ============================================================================
+// Тема дизайн-системы компании — порт из @cft/ui-lib v20.0.36
+// (package/core/src/theme/theme.scss).
+//
+// Источник истины: палитры, типографика и семантические токены ниже
+// скопированы из дизайн-библиотеки без изменений. При обновлении
+// @cft/ui-lib этот файл нужно синхронизировать.
+// ============================================================================
+
+@use '@angular/material' as mat;
+
+// ---------------------------------------------------------------------------
+// Палитры
+// ---------------------------------------------------------------------------
+
+$cft-primary-palette: mat.m2-define-palette(
+  (
+    10: #eaf1ff,
+    50: #d2e4ff,
+    100: #a0caff,
+    200: #6faff7,
+    300: #5394da,
+    400: #347abe,
+    500: #0961a4,
+    600: #00497e,
+    700: #003259,
+    800: #001c37,
+    900: #000000,
+    contrast: (
+      10: #000000,
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #000000,
+      500: #ffffff,
+      600: #ffffff,
+      700: #ffffff,
+      800: #ffffff,
+      900: #ffffff,
+    ),
+  ),
+  500,
+  100,
+  700
+);
+
+$cft-tertiary-palette: mat.m2-define-palette(
+  (
+    50: #d7e3f8,
+    100: #bbc7db,
+    200: #a0acbf,
+    300: #8592a4,
+    400: #6c788a,
+    500: #535f70,
+    600: #3c4858,
+    700: #253141,
+    800: #101c2b,
+    900: #000000,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #000000,
+      500: #ffffff,
+      600: #ffffff,
+      700: #ffffff,
+      800: #ffffff,
+      900: #ffffff,
+    ),
+  )
+);
+
+$cft-warn-palette: mat.m2-define-palette(
+  (
+    50: #f7e4e4,
+    100: #eababa,
+    200: #dd8d8d,
+    300: #cf5f5f,
+    400: #c43c3c,
+    500: #ba1a1a,
+    600: #b31717,
+    700: #ab1313,
+    800: #a30f0f,
+    900: #940808,
+    contrast: (
+      50: #000000,
+      100: #000000,
+      200: #000000,
+      300: #000000,
+      400: #ffffff,
+      500: #ffffff,
+      600: #ffffff,
+      700: #ffffff,
+      800: #ffffff,
+      900: #ffffff,
+    ),
+  )
+);
+
+// ---------------------------------------------------------------------------
+// Типографика (Inter, шкала дизайн-системы)
+// ---------------------------------------------------------------------------
+
+$cft-font-medium: 'Inter-Medium';
+$cft-font-regular: 'Inter-Regular';
+
+$cft-typography: mat.m2-define-typography-config(
+  $headline-1: mat.m2-define-typography-level($font-family: $cft-font-regular, $font-weight: 400, $font-size: 96px, $line-height: 112px, $letter-spacing: -1.5px),
+  $headline-2: mat.m2-define-typography-level($font-family: $cft-font-medium, $font-weight: 500, $font-size: 60px, $line-height: 72px, $letter-spacing: -0.5px),
+  $headline-3: mat.m2-define-typography-level($font-family: $cft-font-medium, $font-weight: 500, $font-size: 48px, $line-height: 56px, $letter-spacing: normal),
+  $headline-4: mat.m2-define-typography-level($font-family: $cft-font-medium, $font-weight: 500, $font-size: 28px, $line-height: 32px, $letter-spacing: normal),
+  $headline-5: mat.m2-define-typography-level($font-family: $cft-font-medium, $font-weight: 500, $font-size: 20px, $line-height: 28px, $letter-spacing: 0.18px),
+  $headline-6: mat.m2-define-typography-level($font-family: $cft-font-medium, $font-weight: 500, $font-size: 16px, $line-height: 24px, $letter-spacing: 0.15px),
+  $subtitle-1: mat.m2-define-typography-level($font-family: $cft-font-regular, $font-weight: 400, $font-size: 16px, $line-height: 24px, $letter-spacing: 0.15px),
+  $subtitle-2: mat.m2-define-typography-level($font-family: $cft-font-medium, $font-weight: 500, $font-size: 14px, $line-height: 24px, $letter-spacing: 0.1px),
+  $body-1: mat.m2-define-typography-level($font-family: $cft-font-regular, $font-weight: 400, $font-size: 16px, $line-height: 24px, $letter-spacing: 0.5px),
+  $body-2: mat.m2-define-typography-level($font-family: $cft-font-regular, $font-weight: 400, $font-size: 14px, $line-height: 20px, $letter-spacing: 0.25px),
+  $button: mat.m2-define-typography-level($font-family: $cft-font-medium, $font-weight: 500, $font-size: 14px, $line-height: 16px, $letter-spacing: 0.5px),
+  $caption: mat.m2-define-typography-level($font-family: $cft-font-regular, $font-weight: 400, $font-size: 12px, $line-height: 16px, $letter-spacing: 0.4px),
+  $overline: mat.m2-define-typography-level($font-family: $cft-font-regular, $font-weight: 500, $font-size: 10px, $line-height: 16px, $letter-spacing: 1.5px)
+);
+
+$cft-theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: $cft-primary-palette,
+      accent: $cft-tertiary-palette,
+      warn: $cft-warn-palette,
+    ),
+    typography: $cft-typography,
+  )
+);
+
+// ---------------------------------------------------------------------------
+// Применение темы + токены
+// ---------------------------------------------------------------------------
+
+@mixin apply() {
+  @include mat.core();
+  @include mat.all-component-themes($cft-theme);
+  @include mat.typography-hierarchy($cft-theme);
+
+  :root {
+    // --- Семантика дизайн-системы -------------------------------------
+    --on-surface-high-emphasis-color: rgba(0, 0, 0, 0.87);
+    --on-surface-medium-emphasis-color: rgba(0, 0, 0, 0.6);
+    --on-surface-disabled-color: rgba(0, 0, 0, 0.38);
+
+    --on-primary-high-emphasis-color: rgba(0, 0, 0, 1);
+    --on-primary-medium-emphasis-color: rgba(0, 0, 0, 0.74);
+    --on-primary-disabled-color: rgba(0, 0, 0, 0.38);
+
+    --error-background-color: rgba(248, 232, 232, 1);
+    --error-color: #ba1a1a;
+    --background-color: #f5f5f5;
+    --surface-color: #ffffff;
+    --outline-color: rgba(0, 0, 0, 0.12);
+    --surface-overlay-color: rgba(33, 33, 33, 0.08);
+
+    // --- Шкалы палитр ---------------------------------------------------
+    --primary-10: #eaf1ff;
+    --primary-50: #d2e4ff;
+    --primary-100: #a0caff;
+    --primary-200: #6faff7;
+    --primary-300: #5394da;
+    --primary-400: #347abe;
+    --primary-500: #0961a4;
+    --primary-600: #00497e;
+    --primary-700: #003259;
+    --primary-800: #001c37;
+    --primary-900: #000000;
+
+    --tertiary-50: #d7e3f8;
+    --tertiary-100: #bbc7db;
+    --tertiary-200: #a0acbf;
+    --tertiary-300: #8592a4;
+    --tertiary-400: #6c788a;
+    --tertiary-500: #535f70;
+    --tertiary-600: #3c4858;
+    --tertiary-700: #253141;
+    --tertiary-800: #101c2b;
+    --tertiary-900: #000000;
+
+    --warn-50: #f7e4e4;
+    --warn-100: #eababa;
+    --warn-200: #dd8d8d;
+    --warn-300: #cf5f5f;
+    --warn-400: #c43c3c;
+    --warn-500: #ba1a1a;
+    --warn-600: #b31717;
+    --warn-700: #ab1313;
+    --warn-800: #a30f0f;
+    --warn-900: #940808;
+
+    // --- Быстрый доступ (как в ДС) --------------------------------------
+    --primary: var(--primary-500);
+    --tertiary: var(--tertiary-500);
+    --warn: var(--warn-500);
+
+    // --- Совместимость: старые M3-имена, используемые в компонентах -----
+    // Компоненты приложения исторически обращаются к --mat-sys-*.
+    // Мапим их на семантику ДС, чтобы не переписывать все стили.
+    --mat-sys-primary: var(--primary-500);
+    --mat-sys-on-primary: #ffffff;
+    --mat-sys-primary-container: var(--primary-50);
+    --mat-sys-on-primary-container: var(--primary-700);
+
+    --mat-sys-secondary: var(--tertiary-500);
+    --mat-sys-on-secondary: #ffffff;
+    --mat-sys-secondary-container: var(--tertiary-50);
+    --mat-sys-on-secondary-container: var(--tertiary-800);
+
+    --mat-sys-tertiary: var(--primary-300);
+    --mat-sys-on-tertiary: #ffffff;
+    --mat-sys-tertiary-container: var(--primary-10);
+    --mat-sys-on-tertiary-container: var(--primary-700);
+
+    --mat-sys-error: var(--warn-500);
+    --mat-sys-on-error: #ffffff;
+    --mat-sys-error-container: var(--error-background-color);
+    --mat-sys-on-error-container: var(--warn-700);
+
+    --mat-sys-surface: var(--surface-color);
+    --mat-sys-on-surface: var(--on-surface-high-emphasis-color);
+    --mat-sys-surface-container-lowest: var(--surface-color);
+    --mat-sys-surface-container-low: var(--background-color);
+    --mat-sys-surface-container: #eeeeee;
+    --mat-sys-surface-container-high: #e7e7e7;
+    --mat-sys-surface-container-highest: #e0e0e0;
+    --mat-sys-on-surface-variant: var(--on-surface-medium-emphasis-color);
+    --mat-sys-outline: var(--on-surface-disabled-color);
+    --mat-sys-outline-variant: var(--outline-color);
+
+    // Тень уровня 1 из ДС (используется в layout)
+    --mat-sys-level1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+}

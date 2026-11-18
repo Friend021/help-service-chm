@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Silent Check SSO</title>
+</head>
+<body>
+  <script>
+    // Keycloak expects this page to post the callback URL (its query/hash
+    // carries the OAuth2 response: code or error) back to the parent window.
+    parent.postMessage(location.href, location.origin);
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<button
+  type="button"
+  class="panel-toggle"
+  aria-label="Свернуть панель"
+  [attr.aria-expanded]="!collapsed()"
+  (click)="toggle()"
+>
+  <mat-icon aria-hidden="true">chevron_right</mat-icon>
+</button>
+
+<div class="panel__backdrop" aria-hidden="true" (click)="toggle()"></div>
+
+<aside
+  class="panel"
+  [class.has-title]="title()"
+  [attr.aria-label]="title() || null"
+>
+  @if (title() && !collapsed()) {
+    <h2 class="panel__title" id="panel-title">{{ title() }}</h2>
+  }
+  <div class="panel__body" [attr.aria-labelledby]="title() && !collapsed() ? 'panel-title' : null">
+    <ng-content />
+  </div>
+</aside>
