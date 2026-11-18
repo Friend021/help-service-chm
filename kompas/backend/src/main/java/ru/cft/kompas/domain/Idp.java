@@ -44,9 +44,17 @@ public class Idp {
     @Column(name = "target_role_id")
     private Long targetRoleId;
 
+    /** Ключевая цель плана целиком — поле нового фронта (/api/v1). */
+    @Column(name = "main_goal", columnDefinition = "text")
+    private String mainGoal;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "idp_id", nullable = false)
-    @OrderBy("orderNo asc")
+    // orderNo — это приоритет-корзина (1..3), он НЕ уникален: несколько направлений
+    // могут делить один приоритет. Вторичный ключ id (монотонный порядок вставки;
+    // applyDraft пересобирает список в порядке плана) делает порядок внутри корзины
+    // детерминированным — иначе направления с равным orderNo перетасовывались при каждой загрузке.
+    @OrderBy("orderNo asc, id asc")
     private List<IdpPriority> priorities = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
@@ -106,6 +114,14 @@ public class Idp {
 
     public void setTargetRoleId(Long targetRoleId) {
         this.targetRoleId = targetRoleId;
+    }
+
+    public String getMainGoal() {
+        return mainGoal;
+    }
+
+    public void setMainGoal(String mainGoal) {
+        this.mainGoal = mainGoal;
     }
 
     public List<IdpPriority> getPriorities() {
