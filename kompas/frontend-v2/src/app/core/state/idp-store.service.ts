@@ -96,7 +96,10 @@ export class IdpStoreService {
     this.skills().filter(s => (s.rating ?? 5) < 4)
   );
   readonly allSkillsRated = computed(() =>
-    this.skills().length > 0 && this.skills().every(s => s.rating !== null)
+    // Навык считается оценённым только когда rating — число. ВАЖНО: с бэка
+    // поле rating приходит как null и Jackson его опускает → в объекте оно
+    // undefined; проверка `!== null` пропускала бы undefined как «оценено».
+    this.skills().length > 0 && this.skills().every(s => typeof s.rating === 'number')
   );
   readonly currentStepNumber = computed(() => {
     const stage = this.currentStage();

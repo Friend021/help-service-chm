@@ -535,7 +535,7 @@ export class AssessmentComponent implements AfterViewInit, OnDestroy {
   }
 
   ratedCount = computed(() =>
-    this.store.skills().filter(s => s.rating !== null).length
+    this.store.skills().filter(s => typeof s.rating === 'number').length
   );
 
   /** Single source of truth: store ratings map (drives generateDraft). */
