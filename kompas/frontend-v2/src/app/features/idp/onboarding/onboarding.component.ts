@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -217,18 +217,8 @@ export class OnboardingComponent {
     return false;
   });
 
-  constructor() {
-    // Предзаполняем целевую из контекста, как только он загрузится (один раз).
-    let inited = false;
-    effect(() => {
-      const ctxTarget = this.store.context()?.targetPosition;
-      if (!inited && ctxTarget) {
-        this.selectedTarget.set(ctxTarget);
-        void this.store.loadTargetPositionProfile(ctxTarget);
-        inited = true;
-      }
-    });
-  }
+  // Целевая должность по умолчанию НЕ выбрана — пользователь выбирает её сам
+  // в модалке. Контекстный `targetPosition` намеренно не предзаполняем.
 
   /** Крошки орг-пути текущей должности: Блок > Дирекция > Семейство > Должность. */
   readonly currentCrumbs = computed(() => {
