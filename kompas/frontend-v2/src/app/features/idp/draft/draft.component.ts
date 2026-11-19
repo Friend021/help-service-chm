@@ -865,9 +865,10 @@ export class DraftComponent implements AfterViewInit, OnDestroy, OnInit {
 
     this.confirming.set(true);
     try {
-      await this.workflow.confirmPlan();
+      // Экспорт прямо из диалога подтверждения: на успехе редиректит в «План развития».
+      await this.workflow.exportPlan();
     } catch {
-      // Validation errors (ApiError) are stored by the store and shown in the banner.
+      // 422: ошибки валидации сохранены стором и показаны в баннере.
     } finally {
       this.confirming.set(false);
     }

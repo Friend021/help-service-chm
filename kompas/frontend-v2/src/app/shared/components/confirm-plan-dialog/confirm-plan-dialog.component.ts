@@ -21,7 +21,7 @@ export interface ConfirmPlanData {
     <div class="cpd">
       <div class="cpd__badge"><mat-icon>fact_check</mat-icon></div>
       <h2 class="cpd__title">Подтвердите правильность данных</h2>
-      <p class="cpd__sub">Проверьте ключевые параметры ИПР перед переходом к подтверждению.</p>
+      <p class="cpd__sub">Проверьте ключевые параметры ИПР перед экспортом в «План развития».</p>
 
       <dl class="cpd__list">
         <div class="cpd__row">
@@ -41,7 +41,8 @@ export interface ConfirmPlanData {
       <div class="cpd__actions">
         <button mat-stroked-button (click)="close(false)">Назад к редактированию</button>
         <button mat-flat-button color="primary" (click)="close(true)">
-          Подтвердить и продолжить
+          <mat-icon>send</mat-icon>
+          Экспортировать в «План развития»
         </button>
       </div>
     </div>
