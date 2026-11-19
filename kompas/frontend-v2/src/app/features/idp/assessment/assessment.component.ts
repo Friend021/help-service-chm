@@ -175,7 +175,10 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
       @if (store.skills().length > 0) {
         <div class="assess-foot-wrap">
           <footer class="idp-actionbar assess-foot">
-            <button mat-button (click)="goBack()" [disabled]="store.isStreaming()">Назад</button>
+            <button mat-button type="button" (click)="goBack()" [disabled]="store.isStreaming()">
+              <mat-icon>arrow_back</mat-icon>
+              Назад
+            </button>
             <button mat-stroked-button (click)="fillWithDialog()" [disabled]="!store.allSkillsRated() || store.isStreaming()">
               <mat-icon>forum</mat-icon>
               Заполнить в диалоге
