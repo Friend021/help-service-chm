@@ -18,6 +18,7 @@ import {
   PriorityOption,
   StageLabel,
   TargetPosition,
+  PositionProfile,
   ExportResponse,
   ValidationError,
   Scenario,
@@ -85,6 +86,8 @@ export class IdpStoreService {
   readonly stageLabels = signal<StageLabel[]>([]);
   readonly targetRoles = signal<string[]>([]);
   readonly targetPositions = signal<TargetPosition[]>([]);
+  /** Профиль текущей должности (крошки + ключевые функции) для карточки онбординга. */
+  readonly currentPositionProfile = signal<PositionProfile | null>(null);
 
   // --- Computed ---
   readonly isDraftValid = computed(() => this.validationErrors().length === 0);
@@ -309,6 +312,20 @@ export class IdpStoreService {
     this.stageLabels.set(response.stages);
     this.targetRoles.set(response.targetRoles ?? []);
     this.targetPositions.set(response.targetPositions ?? []);
+  }
+
+  /** Грузит профиль должности по названию (крошки + ключевые функции). */
+  async loadPositionProfile(title: string): Promise<void> {
+    if (!title?.trim()) {
+      this.currentPositionProfile.set(null);
+      return;
+    }
+    try {
+      const profile = await this.awaitResource(() => this.api.getPositionProfile(title));
+      this.currentPositionProfile.set(profile);
+    } catch {
+      this.currentPositionProfile.set(null);
+    }
   }
 
   setDictionaries(dict: {

@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.cft.kompas.reference.JobProfileParser;
 import ru.cft.kompas.domain.DevelopmentInstrument;
 import ru.cft.kompas.domain.Idp;
 import ru.cft.kompas.domain.JobPosition;
@@ -24,6 +26,7 @@ import ru.cft.kompas.v1.dto.V1Plan;
 import ru.cft.kompas.v1.dto.V1PlanEnvelope;
 import ru.cft.kompas.v1.dto.V1PlanError;
 import ru.cft.kompas.v1.dto.V1PriorityOption;
+import ru.cft.kompas.v1.dto.V1PositionProfile;
 import ru.cft.kompas.v1.dto.V1StageInfo;
 import ru.cft.kompas.v1.dto.V1TargetPosition;
 import ru.cft.kompas.v1.mapping.PlanMapper;
@@ -101,6 +104,19 @@ public class V1IdpController {
 
         return new V1Dictionaries(List.copyOf(goalCategories.all()), priorities, developmentTools, stages,
                 targetRoles, targetPositions);
+    }
+
+    /** Профиль одной должности по названию: орг-путь (крошки) + ключевые функции. */
+    @GetMapping("/position-profile")
+    public V1PositionProfile positionProfile(@RequestParam String title) {
+        return jobPositions.findByTitleIgnoreCase(title)
+                .map(position -> new V1PositionProfile(
+                        position.getTitle(),
+                        position.getCareerTrack(),
+                        position.getOrgBlock(),
+                        position.getOrgDirection(),
+                        JobProfileParser.keyFunctions(position.getJobDescriptionRef())))
+                .orElse(new V1PositionProfile(title, null, null, null, List.of()));
     }
 
     @GetMapping("/draft")

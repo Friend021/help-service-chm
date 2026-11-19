@@ -74,10 +74,21 @@ interface OrgRow {
         @if (mode() === 'current') {
           <div class="pos-card">
             <div class="pos-title">Текущая должность:&nbsp; <b>{{ currentPosition() || '— не указана' }}</b></div>
-            @if (store.context()?.managerFullName; as mgr) {
-              <div class="crumb">Руководитель: {{ mgr }}</div>
+            @if (currentCrumbs(); as crumbs) {
+              <div class="crumb">{{ crumbs }}</div>
             }
-            <p class="fn-note">Индивидуальный план развития будет построен для вашей текущей должности.</p>
+            @if (store.currentPositionProfile()?.keyFunctions?.length) {
+              <div class="fn-block">
+                <div class="fn-title">Функции текущей должности:</div>
+                <ul class="fn-list">
+                  @for (fn of store.currentPositionProfile()!.keyFunctions; track $index) {
+                    <li>{{ fn }}</li>
+                  }
+                </ul>
+              </div>
+            } @else {
+              <p class="fn-note">Индивидуальный план развития будет построен для вашей текущей должности.</p>
+            }
           </div>
         }
 
@@ -184,6 +195,10 @@ interface OrgRow {
     .pos-card .pos-title b { font-weight: 600; }
     .pos-card .crumb { margin: 6px 0 0; color: #8a94a0; font-size: 14px; }
     .pos-card .fn-note { margin: 14px 0 0; color: #39424e; font-size: 14px; }
+    .pos-card .fn-block { margin: 16px 0 0; }
+    .pos-card .fn-title { font-weight: 600; font-size: 15px; color: #1f2733; margin-bottom: 8px; }
+    .pos-card .fn-list { margin: 0; padding-left: 20px; color: #39424e; font-size: 14px; line-height: 1.55; }
+    .pos-card .fn-list li { margin: 4px 0; }
 
     .info { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; background: #e9eef7; color: #2f6fd4; border-radius: 10px; padding: 14px 16px; max-width: 980px; font-size: 15px; line-height: 1.45; }
     .info .i { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; background: #1f6fd4; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; margin-top: 1px; }
@@ -382,9 +397,21 @@ export class OnboardingComponent {
     });
   }
 
+  /** Крошки орг-пути текущей должности: Блок > Дирекция > Семейство > Должность. */
+  readonly currentCrumbs = computed(() => {
+    const p = this.store.currentPositionProfile();
+    if (!p) return '';
+    const parts = [p.orgBlock, p.orgDirection, p.careerTrack, p.title].filter((x): x is string => !!x);
+    return parts.filter((x, i) => i === 0 || x !== parts[i - 1]).join(' > ');
+  });
+
   selectMode(mode: Mode): void {
     this.mode.set(mode);
     this.submitError.set('');
+    if (mode === 'current') {
+      const cur = this.currentPosition();
+      if (cur) void this.store.loadPositionProfile(cur);
+    }
   }
 
   toggle(key: string): void {

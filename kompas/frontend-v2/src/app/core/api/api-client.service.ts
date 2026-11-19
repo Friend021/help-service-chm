@@ -10,6 +10,7 @@ import {
   IdpPlan,
   IdpPlanDraft,
   ManualContextRequest,
+  PositionProfile,
   Scenario,
   WorkflowStage,
 } from '../../models/idp.models';
@@ -82,6 +83,14 @@ export class ApiClientService {
       stages: [],
       targetRoles: [],
     });
+  }
+
+  // --- Position profile (крошки + ключевые функции) ---
+  getPositionProfile(title: string): HttpResourceRef<PositionProfile> {
+    return this.getResource<PositionProfile>(
+      `${this.baseUrl}/idp/position-profile?title=${encodeURIComponent(title)}`,
+      { title, careerTrack: null, orgBlock: null, orgDirection: null, keyFunctions: [] }
+    );
   }
 
   // --- Draft ---

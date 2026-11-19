@@ -140,6 +140,15 @@ export interface TargetPosition {
   orgDirection: string | null;
 }
 
+/** Профиль должности: орг-путь (крошки) + ключевые функции из профиля. */
+export interface PositionProfile {
+  title: string;
+  careerTrack: string | null;
+  orgBlock: string | null;
+  orgDirection: string | null;
+  keyFunctions: string[];
+}
+
 /** GET /api/v1/idp/dictionaries payload. */
 export interface DictionariesResponse {
   directions: DevelopmentDirection[];
