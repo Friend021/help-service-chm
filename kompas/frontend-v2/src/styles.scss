@@ -480,7 +480,9 @@ mat-icon.mat-icon,
   min-height: 28px;
   padding: 0 8px;
   border-radius: 6px;
+  cursor: pointer;
 }
+.rail-task:hover { background: rgba(255, 255, 255, 0.06); }
 
 .rail-task.is-active {
   background: var(--idp-rail-action-active);

@@ -61,6 +61,7 @@ const TOOL_HINTS: Record<string, string> = {
   template: `
     <div
       class="task-editor idp-task-card"
+      id="task-card-{{ dirIndex() }}-{{ taskIndex() }}"
       [class.field-flash]="flashingId() === 'task-card-' + dirIndex() + '-' + taskIndex()"
     >
       <div class="idp-task-header">

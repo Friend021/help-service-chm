@@ -158,6 +158,7 @@ import { IdpTaskDraft } from '../../../models/idp.models';
                   <button
                     type="button"
                     class="rail-direction is-expanded"
+                    (click)="scrollToDirection(i)"
                   >
                     <span class="rail-direction__header">
                       <span
@@ -193,6 +194,7 @@ import { IdpTaskDraft } from '../../../models/idp.models';
                             class="rail-task"
                             [class.is-completed]="taskState?.filled?.[ti]"
                             [class.is-active]="taskState?.firstUnfilledIndex === ti"
+                            (click)="scrollToTask(i, ti, $event)"
                           >
                             <span
                               class="rail-task__label"
@@ -422,6 +424,45 @@ export class IdpShellComponent {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  /** Клик по направлению в рельсе — скролл основной области к его карточке. */
+  scrollToDirection(index: number): void {
+    this.scrollToAnchor('direction-card-' + index);
+  }
+
+  /** Клик по действию в рельсе — скролл к карточке этого действия (без скролла направления). */
+  scrollToTask(dirIndex: number, taskIndex: number, event: Event): void {
+    event.stopPropagation();
+    this.scrollToAnchor('task-card-' + dirIndex + '-' + taskIndex);
+  }
+
+  private scrollToAnchor(id: string): void {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Прокручиваем ТОЛЬКО ближайший скролл-контейнер (у черновика вложенные скроллы:
+    // .main-scroll + .plan-scroll — scrollIntoView двоил бы и перелетал).
+    const scroller = this.scrollParent(el);
+    if (!scroller) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const top = el.getBoundingClientRect().top
+      - scroller.getBoundingClientRect().top
+      + scroller.scrollTop - 12;
+    scroller.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  private scrollParent(el: HTMLElement): HTMLElement | null {
+    let node = el.parentElement;
+    while (node) {
+      const oy = getComputedStyle(node).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && node.scrollHeight > node.clientHeight) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return null;
   }
 
   /** Правая панель: карточка сотрудника (контекст ИПР). */
