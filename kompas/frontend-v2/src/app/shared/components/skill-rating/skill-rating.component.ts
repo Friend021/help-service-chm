@@ -20,8 +20,8 @@ import { SkillAssessmentItem } from '../../../models/idp.models';
             <button
               type="button"
               class="tile"
-              [class.fill]="hover() === null && n <= currentValue()"
-              [class.preview]="hover() !== null && n <= (hover() ?? 0)"
+              [class.fill]="n <= currentValue()"
+              [class.preview]="hover() !== null && n > currentValue() && n <= (hover() ?? 0)"
               [disabled]="readonly()"
               [attr.aria-label]="'Оценка ' + n + ' из 5'"
               [attr.aria-checked]="n === currentValue()"
