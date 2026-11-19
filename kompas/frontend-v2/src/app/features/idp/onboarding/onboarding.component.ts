@@ -89,7 +89,8 @@ interface OrgRow {
 
           <div class="picker-head">
             <div class="search">
-              <input type="text" [(ngModel)]="search" placeholder="Введите название должности">
+              <input type="text" [value]="search()" (input)="search.set($any($event.target).value)"
+                     placeholder="Введите название должности">
               <mat-icon class="mag">search</mat-icon>
             </div>
             <div class="tree-tools">
