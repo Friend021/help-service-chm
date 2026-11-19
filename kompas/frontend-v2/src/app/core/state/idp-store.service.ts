@@ -88,6 +88,8 @@ export class IdpStoreService {
   readonly targetPositions = signal<TargetPosition[]>([]);
   /** Профиль текущей должности (крошки + ключевые функции) для карточки онбординга. */
   readonly currentPositionProfile = signal<PositionProfile | null>(null);
+  /** Профиль выбранной целевой должности (ключевые функции) для карточки онбординга. */
+  readonly targetPositionProfile = signal<PositionProfile | null>(null);
 
   // --- Computed ---
   readonly isDraftValid = computed(() => this.validationErrors().length === 0);
@@ -314,17 +316,22 @@ export class IdpStoreService {
     this.targetPositions.set(response.targetPositions ?? []);
   }
 
-  /** Грузит профиль должности по названию (крошки + ключевые функции). */
+  /** Грузит профиль текущей должности (крошки + ключевые функции). */
   async loadPositionProfile(title: string): Promise<void> {
-    if (!title?.trim()) {
-      this.currentPositionProfile.set(null);
-      return;
-    }
+    this.currentPositionProfile.set(await this.fetchPositionProfile(title));
+  }
+
+  /** Грузит профиль выбранной целевой должности (ключевые функции). */
+  async loadTargetPositionProfile(title: string): Promise<void> {
+    this.targetPositionProfile.set(await this.fetchPositionProfile(title));
+  }
+
+  private async fetchPositionProfile(title: string): Promise<PositionProfile | null> {
+    if (!title?.trim()) return null;
     try {
-      const profile = await this.awaitResource(() => this.api.getPositionProfile(title));
-      this.currentPositionProfile.set(profile);
+      return await this.awaitResource(() => this.api.getPositionProfile(title));
     } catch {
-      this.currentPositionProfile.set(null);
+      return null;
     }
   }
 

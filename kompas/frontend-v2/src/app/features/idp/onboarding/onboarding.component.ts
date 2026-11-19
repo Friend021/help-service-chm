@@ -86,6 +86,16 @@ type Mode = 'none' | 'current' | 'target';
               @if (targetCrumbs(); as crumbs) {
                 <div class="crumb">{{ crumbs }}</div>
               }
+              @if (store.targetPositionProfile()?.keyFunctions?.length) {
+                <div class="fn-block">
+                  <div class="fn-title">Функции целевой должности:</div>
+                  <ul class="fn-list">
+                    @for (fn of store.targetPositionProfile()!.keyFunctions; track $index) {
+                      <li>{{ fn }}</li>
+                    }
+                  </ul>
+                </div>
+              }
             </div>
             <button type="button" class="pick-btn" (click)="openPositionPicker()">
               <mat-icon>edit</mat-icon> Изменить должность
@@ -214,6 +224,7 @@ export class OnboardingComponent {
       const ctxTarget = this.store.context()?.targetPosition;
       if (!inited && ctxTarget) {
         this.selectedTarget.set(ctxTarget);
+        void this.store.loadTargetPositionProfile(ctxTarget);
         inited = true;
       }
     });
@@ -233,6 +244,9 @@ export class OnboardingComponent {
     if (mode === 'current') {
       const cur = this.currentPosition();
       if (cur) void this.store.loadPositionProfile(cur);
+    } else if (mode === 'target') {
+      const sel = this.selectedTarget();
+      if (sel) void this.store.loadTargetPositionProfile(sel);
     }
   }
 
@@ -258,6 +272,7 @@ export class OnboardingComponent {
     if (picked) {
       this.selectedTarget.set(picked);
       this.submitError.set('');
+      void this.store.loadTargetPositionProfile(picked);
     }
   }
 
