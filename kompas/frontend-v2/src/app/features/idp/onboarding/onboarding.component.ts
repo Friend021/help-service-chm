@@ -25,6 +25,7 @@ type Mode = 'none' | 'current' | 'target';
       />
 
       <div class="ob-scroll">
+        <div class="ob-inner">
         <a class="back" href="#" (click)="$event.preventDefault()">
           <mat-icon>arrow_back</mat-icon> На главную
         </a>
@@ -84,6 +85,7 @@ type Mode = 'none' | 'current' | 'target';
             <span>{{ error }}</span>
           </div>
         }
+        </div>
       </div>
 
       <footer class="idp-actionbar ob-foot">
@@ -101,7 +103,8 @@ type Mode = 'none' | 'current' | 'target';
   styles: [`
     :host { display: block; height: 100%; }
     .onboarding-page { height: 100%; display: flex; flex-direction: column; min-height: 0; }
-    .ob-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 22px 30px 20px; }
+    .ob-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 22px 24px 20px; }
+    .ob-inner { max-width: 1000px; margin: 0 auto; }
 
     .back { display: inline-flex; align-items: center; gap: 8px; color: #8a94a0; text-decoration: none; font-size: 14px; margin-bottom: 12px; }
     .back mat-icon { width: 17px; height: 17px; font-size: 17px; }
@@ -145,7 +148,7 @@ type Mode = 'none' | 'current' | 'target';
 
     .submit-error { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 12px; background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); border-radius: 8px; font-size: 0.875rem; max-width: 980px; }
 
-    .ob-foot { flex: 0 0 auto; margin: 0 40px; border-radius: 12px 12px 0 0; }
+    .ob-foot { flex: 0 0 auto; max-width: 1000px; width: 100%; margin: 0 auto; border-radius: 12px 12px 0 0; }
     .fbtn { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 0; color: #fff; font-size: 14px; padding: 6px 4px; cursor: pointer; }
     .fbtn mat-icon { width: 17px; height: 17px; font-size: 17px; }
     .fbtn.primary { background: var(--primary-500); border-radius: 8px; padding: 8px 18px; }

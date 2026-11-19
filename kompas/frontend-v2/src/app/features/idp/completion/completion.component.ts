@@ -108,7 +108,7 @@ import { Dictionaries, WorkflowStage } from '../../../models/idp.models';
     // Карточки: внутренние отступы 16px, действия отделены 16px снизу — единый ритм ДС
     .completion-page {
       padding: 24px;
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
     }
 

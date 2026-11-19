@@ -266,12 +266,15 @@ interface ValidationIssue {
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
-      padding: 22px 30px 12px;
+      padding: 22px 24px 12px;
     }
 
     .plan-card {
       display: flex;
       flex-direction: column;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
       --mat-form-field-container-height: 40px;
       --mat-form-field-container-vertical-padding: 8px;
     }
@@ -308,10 +311,12 @@ interface ValidationIssue {
     mat-card-content { padding: 0 16px 8px; }
     mat-card-content:last-child { padding-bottom: 16px; }
 
-    /* Прижатый тёмный подвал: скруглён сверху, отступы по 40px (как в макете). */
+    /* Прижатый тёмный подвал: скруглён сверху, центрирован по ширине контента (1000px). */
     .draft-foot {
       flex: 0 0 auto;
-      margin: 0 40px;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
       border-radius: 12px 12px 0 0;
     }
 
