@@ -12,6 +12,7 @@ import { IdpWorkflowService } from '../services/idp-workflow.service';
 import { SkillRatingComponent } from '../../../shared/components/skill-rating/skill-rating.component';
 import { StageIndicatorComponent } from '../../../shared/components/stage-indicator/stage-indicator.component';
 import { ChatMessageComponent } from '../../../shared/components/chat-message/chat-message.component';
+import { GenerationOverlayComponent } from '../../../shared/components/generation-overlay/generation-overlay.component';
 import { VoskDictationService } from '../../../core/speech/vosk-dictation.service';
 import { WorkflowStage } from '../../../models/idp.models';
 
@@ -35,8 +36,12 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
     SkillRatingComponent,
     StageIndicatorComponent,
     ChatMessageComponent,
+    GenerationOverlayComponent,
   ],
   template: `
+    @if (pendingAction() === 'generate') {
+      <app-generation-overlay />
+    }
     <div class="assessment-page">
       <div class="assessment-scroll">
       <div class="assessment-inner">
