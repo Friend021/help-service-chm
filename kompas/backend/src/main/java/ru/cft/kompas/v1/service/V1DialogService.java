@@ -111,6 +111,15 @@ public class V1DialogService {
 
     private static final String REFINE_DONE_FALLBACK = "Готово, внёс правку в план.";
 
+    /** maxTokens для само-ревью черновика (возвращается весь улучшенный план). */
+    private static final int REVIEW_MAX_TOKENS = 6000;
+
+    private static final String REVIEW_SYSTEM =
+            "Ты — строгий рецензент индивидуальных планов развития (ИПР). Тебе дают ЧЕРНОВИК плана, "
+                    + "который собрала другая модель. Твоя задача — проверить его по чек-листу, найти слабые "
+                    + "места и ВЕРНУТЬ УЛУЧШЕННЫЙ план в том же JSON-формате. Не задавай вопросов, не объясняйся — "
+                    + "просто выдай исправленный план. Если черновик уже хорош, верни его с минимальными правками.";
+
     private final DialogOrchestrator orchestrator;
     private final EmployeeRepository employees;
     private final V1DialogSessionRepository sessions;
@@ -258,6 +267,9 @@ public class V1DialogService {
             return null;
         }
 
+        // Само-ревью: та же LLM прогоняет черновик по чек-листу качества и возвращает улучшенный план.
+        plan = reviewAndImprove(session, plan, targetRole, roleId, ratings, plannedTasks);
+
         // Применяем план тем же механизмом, что и V1SessionService.applyPlan.
         Idp idp = idpService.getOrCreate(session.getEmployeeId(), session.getId(), roleId);
         DraftDto draft = planMapper.toDraft(plan, roleTitle);
@@ -282,6 +294,117 @@ public class V1DialogService {
         V1Plan persisted = withMainGoal(planMapper.toPlan(idp), session);
         return new TurnResult(UUID.randomUUID().toString(), DRAFT_DONE_MESSAGE, persisted,
                 WorkflowStage.of(DialogStage.REFINE));
+    }
+
+    /**
+     * Само-ревью черновика: та же LLM получает собранный план + профиль/компетенции/самооценку и
+     * чек-лист качества, возвращает улучшенный план. Нормализуется тем же конвейером, что и черновик
+     * (валидные категории/инструменты/компетенции, дедуп, порядок сроков). На любой сбой или
+     * регрессию (пусто/непарсибельно/стало меньше направлений) — оставляем исходный черновик.
+     */
+    private V1Plan reviewAndImprove(DialogSession session, V1Plan plan, JobPosition targetRole,
+                                    Long roleId, List<Rating> ratings, String plannedTasks) {
+        String planJson;
+        try {
+            planJson = objectMapper.writeValueAsString(plan);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.warn("Само-ревью пропущено — не удалось сериализовать план (сессия {}): {}",
+                    session.getId(), e.getMessage());
+            return plan;
+        }
+        try {
+            List<ChatMessage> prompt = List.of(
+                    ChatMessage.system(REVIEW_SYSTEM),
+                    ChatMessage.user(buildReviewUserPrompt(planJson, targetRole, roleId, ratings, plannedTasks)));
+            LlmParams params = LlmParams.of(properties.getLlm().getTemperature(), REVIEW_MAX_TOKENS);
+            String raw = llmClient.chat(prompt, params);
+            V1Plan improved = parseAndNormalize(raw, session);
+            if (improved == null || improved.directions().size() < plan.directions().size()) {
+                log.warn("Само-ревью не дало пригодного плана — оставляю исходный черновик (сессия {})",
+                        session.getId());
+                return plan;
+            }
+            log.info("Сессия {}: само-ревью применено ({} → {} направлений)",
+                    session.getId(), plan.directions().size(), improved.directions().size());
+            return improved;
+        } catch (RuntimeException e) {
+            log.warn("Сбой само-ревью черновика — оставляю исходный (сессия {}): {}",
+                    session.getId(), e.getMessage());
+            return plan;
+        }
+    }
+
+    /** USER-промпт само-ревью: черновик на проверку, профиль/самооценка, справочники и чек-лист качества. */
+    private String buildReviewUserPrompt(String planJson, JobPosition targetRole, Long roleId,
+                                         List<Rating> ratings, String plannedTasks) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String todayStr = today.toString();
+        String horizonStr = today.plusMonths(6).toString();
+        String roleTitle = targetRole.getTitle();
+        String profile = targetRole.getJobDescriptionRef() == null || targetRole.getJobDescriptionRef().isBlank()
+                ? "(профиль должности не задан)" : targetRole.getJobDescriptionRef();
+
+        Map<String, String> names = competencyNames(roleId);
+        StringBuilder ratingLines = new StringBuilder();
+        if (ratings != null) {
+            for (Rating r : ratings) {
+                if (r == null || r.skillId() == null) {
+                    continue;
+                }
+                String name = names.getOrDefault(r.skillId(), r.skillId());
+                int v = r.rating() == null ? 0 : r.rating();
+                ratingLines.append("- ").append(name).append(": самооценка ").append(v).append("/5\n");
+            }
+        }
+        if (ratingLines.length() == 0) {
+            ratingLines.append("(самооценка не предоставлена)\n");
+        }
+
+        StringBuilder categories = new StringBuilder();
+        for (String c : goalCategories.all()) {
+            categories.append("- ").append(c).append('\n');
+        }
+        StringBuilder tools = new StringBuilder();
+        for (DevelopmentInstrument i : DevelopmentInstrument.values()) {
+            tools.append("- ").append(i.getTitle()).append('\n');
+        }
+        StringBuilder comps = new StringBuilder();
+        for (Map.Entry<String, String> e : names.entrySet()) {
+            comps.append("- ").append(e.getKey()).append(" — ").append(e.getValue()).append('\n');
+        }
+        if (comps.length() == 0) {
+            comps.append("(компетенции роли не заданы)\n");
+        }
+        boolean hasTasks = plannedTasks != null && !plannedTasks.isBlank();
+
+        return "ЧЕРНОВИК ИПР на проверку (JSON):\n" + planJson + "\n\n"
+                + "Сотрудник развивается в сторону роли «" + roleTitle + "».\n"
+                + "Профиль роли:\n" + profile + "\n\n"
+                + "Самооценка по компетенциям (чем ниже — тем слабее владение):\n" + ratingLines
+                + (hasTasks ? "\nСотрудник сам описал задачи для развития:\n" + plannedTasks.trim() + "\n" : "")
+                + "\nДоступные КАТЕГОРИИ направления (поле \"goal\" — строго ДОСЛОВНО из списка):\n" + categories
+                + "Доступные ИНСТРУМЕНТЫ развития (поле \"developmentTool\" — строго из списка):\n" + tools
+                + "КОМПЕТЕНЦИИ роли (код — название) для \"competencyCodes\":\n" + comps
+                + "\n" + DEV_MODEL_702010 + "\n"
+                + "\nПРОВЕРЬ черновик по чек-листу и ИСПРАВЬ найденное:\n"
+                + "1) Категория (goal) каждого направления подходит ПО СМЫСЛУ к его компетенции и описанию. "
+                + "Если категория не к месту — замени на подходящую из списка.\n"
+                + "2) Приоритет — самым СЛАБЫМ компетенциям (низкая самооценка). Если направление взято по "
+                + "сильной компетенции, а слабые не охвачены — замени его на слабую."
+                + (hasTasks ? " Направление по задачам сотрудника оставь первым (rank 0).\n" : "\n")
+                + "3) Одна компетенция = одно направление; убери дубли по СМЫСЛУ (даже под разными кодами).\n"
+                + "4) Действия конкретные и измеримые, выведены из профиля/задач, а не шаблон «повысить уровень "
+                + "до N/5». Размытые формулировки усиль.\n"
+                + "5) Баланс 70/20/10 в каждом направлении (смесь форм, не только курсы).\n"
+                + "6) Сроки: сначала обучение, затем работа на месте, затем обратная связь; все БУДУЩИЕ (после "
+                + todayStr + ", до " + horizonStr + "), ISO-8601 UTC.\n"
+                + "7) Ключевая цель (mainGoal) — предметная формулировка перехода на роль с ключевыми "
+                + "развиваемыми компетенциями, а не просто «Переход на роль X».\n"
+                + "Сохрани число направлений (НЕ меньше, чем в черновике; минимум 3). "
+                + "Верни СТРОГО JSON того же вида:\n"
+                + "{\"mainGoal\":\"...\",\"directions\":[{\"rank\":0,\"goal\":\"...\",\"description\":\"...\","
+                + "\"competencyCodes\":[\"AUTO-...\"],\"tasks\":[{\"developmentTool\":\"...\",\"description\":\"...\","
+                + "\"deadLine\":\"" + horizonStr + "T12:00:00Z\",\"comment\":\"\"}]}]}";
     }
 
     /**
