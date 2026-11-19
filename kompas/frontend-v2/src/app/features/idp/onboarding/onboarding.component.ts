@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -37,7 +38,7 @@ interface OrgRow {
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, StageIndicatorComponent],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, StageIndicatorComponent],
   template: `
     <div class="onboarding-page">
       <app-stage-indicator
@@ -143,13 +144,14 @@ interface OrgRow {
       </div>
 
       <footer class="idp-actionbar ob-foot">
-        <button type="button" class="fbtn" (click)="goHome()">
+        <button mat-button type="button" (click)="goHome()">
           <mat-icon>arrow_back</mat-icon> Назад
         </button>
         <span class="idp-actionbar__spacer"></span>
-        <button type="button" class="fbtn primary" [disabled]="!isFormValid() || submitting()" (click)="submit()">
+        <button mat-flat-button color="primary" type="button" iconPositionEnd
+                [disabled]="!isFormValid() || submitting()" (click)="submit()">
           @if (submitting()) { <mat-spinner diameter="18"></mat-spinner> }
-          @else { <span>Продолжить</span> <mat-icon>arrow_forward</mat-icon> }
+          @else { Продолжить <mat-icon>arrow_forward</mat-icon> }
         </button>
       </footer>
     </div>
@@ -222,11 +224,6 @@ interface OrgRow {
     .submit-error { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 12px; background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); border-radius: 8px; font-size: 0.875rem; max-width: 980px; }
 
     .ob-foot { flex: 0 0 auto; max-width: 1000px; width: 100%; margin: 0 auto; border-radius: 12px 12px 0 0; }
-    .fbtn { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 0; color: #fff; font-size: 15px; font-weight: 600; padding: 6px 4px; cursor: pointer; }
-    .fbtn mat-icon { width: 18px; height: 18px; font-size: 18px; }
-    /* Первичное действие («Далее»): плоский светло-голубой текст со стрелкой, без заливки. */
-    .fbtn.primary { color: #8fb8f5; }
-    .fbtn.primary:disabled { color: rgba(255, 255, 255, .42); cursor: default; }
 
     @media (max-width: 720px) {
       .ob-scroll { padding: 18px 16px; }

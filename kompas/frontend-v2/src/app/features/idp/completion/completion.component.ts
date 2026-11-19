@@ -36,7 +36,8 @@ import { Dictionaries, WorkflowStage } from '../../../models/idp.models';
         (navigate)="onStageNavigate($event)"
       />
 
-      <div class="completion-content">
+      <div class="completion-scroll">
+       <div class="completion-inner">
         <mat-card class="summary-card" appearance="outlined">
           <mat-card-header>
             <mat-card-title>ИПР готов к экспорту</mat-card-title>
@@ -81,39 +82,52 @@ import { Dictionaries, WorkflowStage } from '../../../models/idp.models';
               </div>
             </div>
           </mat-card-content>
-
-          <mat-card-actions align="end">
-            <button mat-button (click)="goBack()">Вернуться к правкам</button>
-            <button
-              mat-flat-button
-              color="primary"
-              [disabled]="exporting()"
-              (click)="openExportDialog()"
-            >
-              @if (exporting()) {
-                <mat-spinner diameter="20"></mat-spinner>
-              } @else {
-                <ng-container>
-                  <mat-icon>send</mat-icon>
-                  Экспортировать в «План развития»
-                </ng-container>
-              }
-            </button>
-          </mat-card-actions>
         </mat-card>
+       </div>
       </div>
+
+      <footer class="idp-actionbar completion-foot">
+        <button mat-button type="button" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon> Вернуться к правкам
+        </button>
+        <span class="idp-actionbar__spacer"></span>
+        <button mat-flat-button color="primary" [disabled]="exporting()" (click)="openExportDialog()">
+          @if (exporting()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>send</mat-icon> Экспортировать в «План развития»
+          }
+        </button>
+      </footer>
     </div>
   `,
   styles: [`
-    // Карточки: внутренние отступы 16px, действия отделены 16px снизу — единый ритм ДС
+    :host { display: block; height: 100%; }
+
+    /* Прижатый подвал как на остальных экранах ИПР: шапка-шаги сверху,
+       прокрутка в середине, тёмная полоса действий снизу. */
     .completion-page {
-      padding: 24px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .completion-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 22px 24px 20px;
+    }
+    .completion-inner {
       max-width: 1000px;
       margin: 0 auto;
     }
-
-    .completion-content {
-      margin-top: 24px;
+    .completion-foot {
+      flex: 0 0 auto;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      border-radius: 12px 12px 0 0;
     }
 
     .summary-card {
@@ -174,16 +188,14 @@ import { Dictionaries, WorkflowStage } from '../../../models/idp.models';
       padding: 0 16px 8px;
     }
 
-    // Контент — последний блок карточки (чат, старт): снизу те же 16px.
+    // Контент — последний блок карточки: снизу те же 16px.
     mat-card-content:last-child {
       padding-bottom: 16px;
     }
 
-    // Действия: 16px снизу до границы карточки и 16px по бокам.
-    mat-card-actions {
-      padding: 8px 16px 16px;
-      margin: 0;
-      gap: 12px;
+    @media (max-width: 720px) {
+      .completion-scroll { padding: 18px 16px; }
+      .completion-foot { margin: 0; border-radius: 0; }
     }
   `],
 })

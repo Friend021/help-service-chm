@@ -229,11 +229,9 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
       max-width: 1000px;
       width: 100%;
       margin: 0 auto;
-      padding: 0 24px;
       box-sizing: border-box;
     }
     .assess-foot {
-      margin: 0 16px;
       border-radius: 12px 12px 0 0;
     }
 
