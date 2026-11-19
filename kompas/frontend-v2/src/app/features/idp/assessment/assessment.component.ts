@@ -38,6 +38,8 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
   ],
   template: `
     <div class="assessment-page">
+      <div class="assessment-scroll">
+      <div class="assessment-inner">
       <app-stage-indicator
         [currentStage]="store.currentStage()"
         [steps]="store.stageLabels()"
@@ -140,29 +142,6 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
               </div>
             </mat-card-content>
           </mat-card>
-
-          <footer class="idp-actionbar assess-foot">
-            <button mat-button (click)="goBack()" [disabled]="store.isStreaming()">Назад</button>
-            <button mat-stroked-button (click)="fillWithDialog()" [disabled]="!store.allSkillsRated() || store.isStreaming()">
-              <mat-icon>forum</mat-icon>
-              Заполнить в диалоге
-            </button>
-            <button
-              mat-flat-button
-              color="primary"
-              [disabled]="!store.allSkillsRated() || store.isStreaming() || pendingAction() !== null"
-              (click)="generateDraft()"
-            >
-              @if (pendingAction() === 'generate') {
-                <mat-spinner diameter="20"></mat-spinner>
-              } @else {
-                <ng-container>
-                  <mat-icon>assignment</mat-icon>
-                  Сформировать черновик ИПР
-                </ng-container>
-              }
-            </button>
-          </footer>
         }
 
         @if (store.skills().length === 0) {
@@ -190,25 +169,72 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
           </mat-card>
         }
       </div>
+      </div>
+      </div>
+
+      @if (store.skills().length > 0) {
+        <div class="assess-foot-wrap">
+          <footer class="idp-actionbar assess-foot">
+            <button mat-button (click)="goBack()" [disabled]="store.isStreaming()">Назад</button>
+            <button mat-stroked-button (click)="fillWithDialog()" [disabled]="!store.allSkillsRated() || store.isStreaming()">
+              <mat-icon>forum</mat-icon>
+              Заполнить в диалоге
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="!store.allSkillsRated() || store.isStreaming() || pendingAction() !== null"
+              (click)="generateDraft()"
+            >
+              @if (pendingAction() === 'generate') {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                <ng-container>
+                  <mat-icon>assignment</mat-icon>
+                  Сформировать черновик ИПР
+                </ng-container>
+              }
+            </button>
+          </footer>
+        </div>
+      }
     </div>
   `,
   styles: [`
     // Карточки: внутренние отступы 16px, действия отделены 16px снизу — единый ритм ДС
     .assessment-page {
-      padding: 24px 24px 88px;
-      max-width: 1000px;
-      margin: 0 auto;
       height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Скроллится только контент; подвал вынесен из скролла и всегда внизу. */
+    .assessment-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
     }
 
-    /* Подвав прижат к низу прокрутки (не уезжает на длинном опроснике). */
+    .assessment-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px 24px 16px;
+    }
+
+    /* Подвал — вне прокрутки, прижат к низу (как в черновике). */
+    .assess-foot-wrap {
+      flex: 0 0 auto;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      box-sizing: border-box;
+    }
     .assess-foot {
-      position: sticky;
-      bottom: 0;
-      margin: 8px 40px 0;
+      margin: 0 16px;
       border-radius: 12px 12px 0 0;
-      z-index: 1;
     }
 
     .assessment-content {
