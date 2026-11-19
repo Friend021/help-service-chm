@@ -66,6 +66,9 @@ public class V1DialogService {
     /** Минимум направлений развития в черновике ИПР: при меньшем числе генерацию повторяем. */
     private static final int MIN_DIRECTIONS = 3;
 
+    /** Горизонт ИПР в месяцах: сроки действий детерминированно растягиваются по этому окну. */
+    private static final int PLAN_HORIZON_MONTHS = 12;
+
     /** maxTokens для генерации черновика ИПР (план крупнее опросника). */
     private static final int DRAFT_MAX_TOKENS = 3000;
 
@@ -268,7 +271,7 @@ public class V1DialogService {
         }
 
         // Само-ревью: та же LLM прогоняет черновик по чек-листу качества и возвращает улучшенный план.
-        plan = reviewAndImprove(session, plan, targetRole, roleId, ratings, plannedTasks);
+        plan = reviewAndImprove(session, plan, targetRole, roleId, ratings, plannedTasks, null);
 
         // Применяем план тем же механизмом, что и V1SessionService.applyPlan.
         Idp idp = idpService.getOrCreate(session.getEmployeeId(), session.getId(), roleId);
@@ -303,7 +306,7 @@ public class V1DialogService {
      * регрессию (пусто/непарсибельно/стало меньше направлений) — оставляем исходный черновик.
      */
     private V1Plan reviewAndImprove(DialogSession session, V1Plan plan, JobPosition targetRole,
-                                    Long roleId, List<Rating> ratings, String plannedTasks) {
+                                    Long roleId, List<Rating> ratings, String plannedTasks, String userIntent) {
         String planJson;
         try {
             planJson = objectMapper.writeValueAsString(plan);
@@ -315,7 +318,7 @@ public class V1DialogService {
         try {
             List<ChatMessage> prompt = List.of(
                     ChatMessage.system(REVIEW_SYSTEM),
-                    ChatMessage.user(buildReviewUserPrompt(planJson, targetRole, roleId, ratings, plannedTasks)));
+                    ChatMessage.user(buildReviewUserPrompt(planJson, targetRole, roleId, ratings, plannedTasks, userIntent)));
             LlmParams params = LlmParams.of(properties.getLlm().getTemperature(), REVIEW_MAX_TOKENS);
             String raw = llmClient.chat(prompt, params);
             V1Plan improved = parseAndNormalize(raw, session);
@@ -336,10 +339,10 @@ public class V1DialogService {
 
     /** USER-промпт само-ревью: черновик на проверку, профиль/самооценка, справочники и чек-лист качества. */
     private String buildReviewUserPrompt(String planJson, JobPosition targetRole, Long roleId,
-                                         List<Rating> ratings, String plannedTasks) {
+                                         List<Rating> ratings, String plannedTasks, String userIntent) {
         java.time.LocalDate today = java.time.LocalDate.now();
         String todayStr = today.toString();
-        String horizonStr = today.plusMonths(6).toString();
+        String horizonStr = today.plusMonths(12).toString();
         String roleTitle = targetRole.getTitle();
         String profile = targetRole.getJobDescriptionRef() == null || targetRole.getJobDescriptionRef().isBlank()
                 ? "(профиль должности не задан)" : targetRole.getJobDescriptionRef();
@@ -376,6 +379,36 @@ public class V1DialogService {
             comps.append("(компетенции роли не заданы)\n");
         }
         boolean hasTasks = plannedTasks != null && !plannedTasks.isBlank();
+        boolean editMode = userIntent != null && !userIntent.isBlank();
+
+        // Для ручной правки из чата ревью НЕразрушающее: сохраняем компетенции/категории/состав
+        // направлений, что выставил пользователь, и чиним лишь мелочи. Для генерации — полный чек-лист.
+        String checklist = editMode
+                ? ("\nПРОВЕРЬ план и почини ТОЛЬКО то, что НЕ затрагивает ручные решения пользователя:\n"
+                        + "A) НЕ меняй набор направлений, их компетенции (competencyCodes), категории (goal) и "
+                        + "цели — пользователь редактирует план вручную; сохрани их как есть.\n"
+                        + "B) Категория (goal): только если она ЯВНО не к месту — подбери подходящую под "
+                        + "СУЩЕСТВУЮЩУЮ компетенцию направления (саму компетенцию НЕ меняй).\n"
+                        + "C) Действия: размытые/шаблонные («повысить уровень до N/5») усиль до конкретных и "
+                        + "измеримых, сохранив инструмент и смысл.\n"
+                        + "D) Ключевая цель (mainGoal) — предметная формулировка с ключевыми компетенциями, а не "
+                        + "просто «Переход на роль X».\n"
+                        + "E) Дубли компетенций убирай ТОЛЬКО если правка пользователя их создала.\n")
+                : ("\nПРОВЕРЬ черновик по чек-листу и ИСПРАВЬ найденное:\n"
+                        + "1) Категория (goal) каждого направления подходит ПО СМЫСЛУ к его компетенции и "
+                        + "описанию. Если категория не к месту — замени на подходящую из списка.\n"
+                        + "2) Приоритет — самым СЛАБЫМ компетенциям (низкая самооценка). Если направление взято "
+                        + "по сильной компетенции, а слабые не охвачены — замени его на слабую."
+                        + (hasTasks ? " Направление по задачам сотрудника оставь первым (rank 0).\n" : "\n")
+                        + "3) Одна компетенция = одно направление; убери дубли по СМЫСЛУ (даже под разными "
+                        + "кодами).\n"
+                        + "4) Действия конкретные и измеримые, выведены из профиля/задач, а не шаблон «повысить "
+                        + "уровень до N/5». Размытые формулировки усиль.\n"
+                        + "5) Баланс 70/20/10 в каждом направлении (смесь форм, не только курсы).\n"
+                        + "6) Сроки: сначала обучение, затем работа на месте, затем обратная связь; все БУДУЩИЕ "
+                        + "(после " + todayStr + ", до " + horizonStr + "), ISO-8601 UTC.\n"
+                        + "7) Ключевая цель (mainGoal) — предметная формулировка перехода на роль с ключевыми "
+                        + "развиваемыми компетенциями, а не просто «Переход на роль X».\n");
 
         return "ЧЕРНОВИК ИПР на проверку (JSON):\n" + planJson + "\n\n"
                 + "Сотрудник развивается в сторону роли «" + roleTitle + "».\n"
@@ -386,20 +419,12 @@ public class V1DialogService {
                 + "Доступные ИНСТРУМЕНТЫ развития (поле \"developmentTool\" — строго из списка):\n" + tools
                 + "КОМПЕТЕНЦИИ роли (код — название) для \"competencyCodes\":\n" + comps
                 + "\n" + DEV_MODEL_702010 + "\n"
-                + "\nПРОВЕРЬ черновик по чек-листу и ИСПРАВЬ найденное:\n"
-                + "1) Категория (goal) каждого направления подходит ПО СМЫСЛУ к его компетенции и описанию. "
-                + "Если категория не к месту — замени на подходящую из списка.\n"
-                + "2) Приоритет — самым СЛАБЫМ компетенциям (низкая самооценка). Если направление взято по "
-                + "сильной компетенции, а слабые не охвачены — замени его на слабую."
-                + (hasTasks ? " Направление по задачам сотрудника оставь первым (rank 0).\n" : "\n")
-                + "3) Одна компетенция = одно направление; убери дубли по СМЫСЛУ (даже под разными кодами).\n"
-                + "4) Действия конкретные и измеримые, выведены из профиля/задач, а не шаблон «повысить уровень "
-                + "до N/5». Размытые формулировки усиль.\n"
-                + "5) Баланс 70/20/10 в каждом направлении (смесь форм, не только курсы).\n"
-                + "6) Сроки: сначала обучение, затем работа на месте, затем обратная связь; все БУДУЩИЕ (после "
-                + todayStr + ", до " + horizonStr + "), ISO-8601 UTC.\n"
-                + "7) Ключевая цель (mainGoal) — предметная формулировка перехода на роль с ключевыми "
-                + "развиваемыми компетенциями, а не просто «Переход на роль X».\n"
+                + (userIntent != null && !userIntent.isBlank()
+                        ? "\nВАЖНО: пользователь ТОЛЬКО ЧТО попросил внести это изменение: «" + userIntent.trim()
+                        + "». Это изменение СОХРАНИ как есть — НЕ откатывай и не ослабляй его. Проверяй и "
+                        + "исправляй ТОЛЬКО прочие аспекты плана по чек-листу ниже.\n"
+                        : "")
+                + checklist
                 + "Сохрани число направлений (НЕ меньше, чем в черновике; минимум 3). "
                 + "Верни СТРОГО JSON того же вида:\n"
                 + "{\"mainGoal\":\"...\",\"directions\":[{\"rank\":0,\"goal\":\"...\",\"description\":\"...\","
@@ -483,6 +508,14 @@ public class V1DialogService {
         }
         if (plan == null) {
             return null;
+        }
+
+        // Ревью правки: та же LLM проверяет получившийся план по чек-листу качества, но СОХРАНЯЕТ
+        // изменение, которое попросил пользователь (передаём его как userIntent). При сбое/регрессии
+        // остаётся план как после правки.
+        JobPosition refineRole = roleId == null ? null : positions.findById(roleId).orElse(null);
+        if (refineRole != null) {
+            plan = reviewAndImprove(session, plan, refineRole, roleId, null, null, message);
         }
 
         // Применяем обновлённый план тем же механизмом, что и путь черновика.
@@ -614,7 +647,7 @@ public class V1DialogService {
     private String buildRefineUserPrompt(String currentPlanJson, String message, Long roleId) {
         java.time.LocalDate today = java.time.LocalDate.now();
         String todayStr = today.toString();
-        String exampleDeadline = today.plusMonths(3).toString() + "T12:00:00Z";
+        String exampleDeadline = today.plusMonths(9).toString() + "T12:00:00Z";
 
         StringBuilder categories = new StringBuilder();
         for (String category : goalCategories.all()) {
@@ -780,7 +813,7 @@ public class V1DialogService {
         String roleTitle = targetRole.getTitle();
         java.time.LocalDate today = java.time.LocalDate.now();
         String todayStr = today.toString();
-        String horizonStr = today.plusMonths(6).toString();
+        String horizonStr = today.plusMonths(12).toString();
         String profile = targetRole.getJobDescriptionRef() == null || targetRole.getJobDescriptionRef().isBlank()
                 ? "(профиль должности не задан)" : targetRole.getJobDescriptionRef();
 
@@ -827,7 +860,7 @@ public class V1DialogService {
         }
 
         return "Сегодняшняя дата: " + todayStr + ". Все сроки должны быть ПОЗЖЕ этой даты и не дальше "
-                + horizonStr + " (в пределах 6 месяцев).\n\n"
+                + horizonStr + " (в пределах 12 месяцев).\n\n"
                 + "Сотрудник развивается в сторону роли «" + roleTitle + "».\n\n"
                 + "Профиль роли:\n" + profile + "\n\n"
                 + "Самооценка сотрудника по компетенциям (1–5, чем ниже — тем слабее владение):\n"
@@ -845,7 +878,7 @@ public class V1DialogService {
                 + "роли — такое направление НЕ нужно, выбери другое:\n"
                 + competencies
                 + "\n" + DEV_MODEL_702010 + "\n"
-                + "\nСоставь индивидуальный план развития на 3–6 месяцев. Требования:\n"
+                + "\nСоставь индивидуальный план развития на 6–12 месяцев. Требования:\n"
                 + "- Распредели действия по модели 70/20/10: большинство — «на рабочем месте», часть — "
                 + "«через других», немного — «учебные программы». В каждом направлении давай СМЕСЬ форм, "
                 + "а не только курсы; содержание действия бери из приёмов выбранной формы.\n"
@@ -1028,51 +1061,44 @@ public class V1DialogService {
             result.add(new V1Task(
                     tool,
                     task.comment() == null ? "" : task.comment(),
-                    futureDeadLine(task.deadLine()),
+                    task.deadLine(),
                     task.description()));
         }
-        return orderDeadlinesByInstrument(result);
+        return assignPhasedDeadlines(result);
     }
 
     /**
-     * Приводит сроки внутри направления к логике 70/20/10: сначала ОБУЧЕНИЕ (теория),
-     * затем РАБОТА на месте (практика), затем ФИДБЭК от коллег (оценка результата практики).
-     * Модель расставляла даты вразнобой — фидбэк мог стоять раньше работы, по которой его
-     * собирают. Берём те же сроки, что выдала модель, и перераспределяем их по возрастанию
-     * между задачами в порядке приоритета инструмента, не трогая содержание задач.
+     * Назначает РЕАЛИСТИЧНЫЕ сроки, растянутые по горизонту плана ({@link #PLAN_HORIZON_MONTHS} мес):
+     * обучение — в начале, практика на рабочем месте — длинная середина, обратная связь — ближе к
+     * концу. Сроки, которые выдала модель, НЕ используем: она скучивает их в первые недели и даёт
+     * нереалистично плотные интервалы. В направлении с n действиями сортируем по типу инструмента
+     * (обучение→работа→фидбэк) и равномерно раскидываем по окну [~12%, ~92%] горизонта от сегодня,
+     * строго по возрастанию. Содержание задач не трогаем.
      */
-    private static List<V1Task> orderDeadlinesByInstrument(List<V1Task> tasks) {
-        // Индексы задач с валидным (парсибельным) сроком.
-        List<Integer> dated = new ArrayList<>();
-        for (int i = 0; i < tasks.size(); i++) {
-            String dl = tasks.get(i).deadLine();
-            if (dl != null && !dl.isBlank()) {
-                try {
-                    java.time.OffsetDateTime.parse(dl);
-                    dated.add(i);
-                } catch (Exception ignored) {
-                    // срок без даты не участвует в перестановке
-                }
-            }
-        }
-        if (dated.size() < 2) {
+    private static List<V1Task> assignPhasedDeadlines(List<V1Task> tasks) {
+        if (tasks.isEmpty()) {
             return tasks;
         }
-        // Сроки по возрастанию.
-        List<String> sortedDeadlines = new ArrayList<>();
-        for (int i : dated) {
-            sortedDeadlines.add(tasks.get(i).deadLine());
+        java.time.LocalDate today = java.time.LocalDate.now();
+        long horizonDays = java.time.temporal.ChronoUnit.DAYS.between(today, today.plusMonths(PLAN_HORIZON_MONTHS));
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < tasks.size(); i++) {
+            order.add(i);
         }
-        sortedDeadlines.sort(java.util.Comparator.comparing(java.time.OffsetDateTime::parse));
-        // Те же индексы — в порядке «обучение → работа → фидбэк» (стабильно внутри тира).
-        List<Integer> byTier = new ArrayList<>(dated);
-        byTier.sort(java.util.Comparator.comparingInt(i -> instrumentTier(tasks.get(i).developmentTool())));
-        // Самый ранний срок — задаче с наивысшим приоритетом по тиру, и т.д.
-        List<V1Task> result = new ArrayList<>(tasks);
-        for (int k = 0; k < byTier.size(); k++) {
-            int idx = byTier.get(k);
-            V1Task t = tasks.get(idx);
-            result.set(idx, new V1Task(t.developmentTool(), t.comment(), sortedDeadlines.get(k), t.description()));
+        order.sort(java.util.Comparator.comparingInt(i -> instrumentTier(tasks.get(i).developmentTool())));
+        int n = order.size();
+        double start = 0.12;
+        double end = 0.92;
+        // Возвращаем действия В ХРОНОЛОГИЧЕСКОМ порядке (обучение → работа → фидбэк), чтобы «Действие 1»
+        // было самым ранним: собираем список в порядке тиров, присваивая возрастающие сроки.
+        List<V1Task> result = new ArrayList<>();
+        for (int k = 0; k < n; k++) {
+            double frac = n == 1 ? 0.5 : start + (end - start) * k / (n - 1);
+            long days = Math.round(frac * horizonDays);
+            String iso = today.plusDays(days).atTime(12, 0)
+                    .atOffset(java.time.ZoneOffset.UTC).toInstant().toString();
+            V1Task t = tasks.get(order.get(k));
+            result.add(new V1Task(t.developmentTool(), t.comment(), iso, t.description()));
         }
         return result;
     }
@@ -1087,24 +1113,6 @@ public class V1DialogService {
             return 2;
         }
         return 1; // WORKPLACE и всё прочее — практика посередине
-    }
-
-    /** Подстраховка: прошедший срок (модель могла не знать дату) сдвигаем на +3 месяца. */
-    private static String futureDeadLine(String deadLine) {
-        if (deadLine == null || deadLine.isBlank()) {
-            return deadLine;
-        }
-        java.time.LocalDate today = java.time.LocalDate.now();
-        try {
-            java.time.LocalDate d = java.time.OffsetDateTime.parse(deadLine).toLocalDate();
-            if (!d.isAfter(today)) {
-                d = today.plusMonths(3);
-                return d.atTime(12, 0).atOffset(java.time.ZoneOffset.UTC).toInstant().toString();
-            }
-            return deadLine;
-        } catch (Exception e) {
-            return today.plusMonths(3).atTime(12, 0).atOffset(java.time.ZoneOffset.UTC).toInstant().toString();
-        }
     }
 
     /** Персист ассистентского сообщения — как делает оркестратор (meta=null). */
