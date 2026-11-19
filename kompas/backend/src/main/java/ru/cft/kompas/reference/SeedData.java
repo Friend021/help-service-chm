@@ -8,7 +8,8 @@ public record SeedData(List<SeedPosition> positions,
                        List<SeedActivity> activities,
                        List<String> goalCategories) {
 
-    public record SeedPosition(String title, String type, String careerTrack, String jobDescriptionRef) {
+    public record SeedPosition(String title, String type, String careerTrack, String jobDescriptionRef,
+                               String orgBlock, String orgDirection) {
     }
 
     public record SeedCompetency(String code, String name, String role, Integer targetLevel, String description) {

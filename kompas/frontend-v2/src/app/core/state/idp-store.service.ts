@@ -17,6 +17,7 @@ import {
   DevelopmentTool,
   PriorityOption,
   StageLabel,
+  TargetPosition,
   ExportResponse,
   ValidationError,
   Scenario,
@@ -83,6 +84,7 @@ export class IdpStoreService {
   readonly priorities = signal<PriorityOption[]>([]);
   readonly stageLabels = signal<StageLabel[]>([]);
   readonly targetRoles = signal<string[]>([]);
+  readonly targetPositions = signal<TargetPosition[]>([]);
 
   // --- Computed ---
   readonly isDraftValid = computed(() => this.validationErrors().length === 0);
@@ -303,6 +305,7 @@ export class IdpStoreService {
     this.priorities.set(response.priorities);
     this.stageLabels.set(response.stages);
     this.targetRoles.set(response.targetRoles ?? []);
+    this.targetPositions.set(response.targetPositions ?? []);
   }
 
   setDictionaries(dict: {

@@ -53,6 +53,8 @@ public class ReferenceSeeder {
             position.setTitle(item.title());
             position.setType(PositionType.valueOf(item.type()));
             position.setCareerTrack(item.careerTrack());
+            position.setOrgBlock(item.orgBlock());
+            position.setOrgDirection(item.orgDirection());
             position.setJobDescriptionRef(normalize(item.jobDescriptionRef()));
             positions.save(position);
         }

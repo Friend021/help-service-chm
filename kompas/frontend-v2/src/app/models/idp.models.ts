@@ -132,14 +132,24 @@ export interface EmployeeContextResponse {
   returnUrl: string;
 }
 
+/** Целевая должность с орг-путём для дерева выбора: Блок → Дирекция → семейство → грейд. */
+export interface TargetPosition {
+  title: string;
+  careerTrack: string | null;
+  orgBlock: string | null;
+  orgDirection: string | null;
+}
+
 /** GET /api/v1/idp/dictionaries payload. */
 export interface DictionariesResponse {
   directions: DevelopmentDirection[];
   priorities: PriorityOption[];
   developmentTools: DevelopmentTool[];
   stages: StageLabel[];
-  /** Доступные целевые должности для выбора на шаге подтверждения. */
+  /** Доступные целевые должности для выбора на шаге подтверждения (плоский список названий). */
   targetRoles: string[];
+  /** Те же должности с орг-путём — для дерева Блок → Дирекция → семейство → грейд. */
+  targetPositions?: TargetPosition[];
 }
 
 export interface StageLabel {

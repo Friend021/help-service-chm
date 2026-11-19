@@ -7,5 +7,6 @@ public record V1Dictionaries(List<String> directions,
                              List<V1PriorityOption> priorities,
                              List<String> developmentTools,
                              List<V1StageInfo> stages,
-                             List<String> targetRoles) {
+                             List<String> targetRoles,
+                             List<V1TargetPosition> targetPositions) {
 }

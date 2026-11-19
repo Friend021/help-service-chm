@@ -25,6 +25,7 @@ import ru.cft.kompas.v1.dto.V1PlanEnvelope;
 import ru.cft.kompas.v1.dto.V1PlanError;
 import ru.cft.kompas.v1.dto.V1PriorityOption;
 import ru.cft.kompas.v1.dto.V1StageInfo;
+import ru.cft.kompas.v1.dto.V1TargetPosition;
 import ru.cft.kompas.v1.mapping.PlanMapper;
 import ru.cft.kompas.v1.mapping.PlanValidator;
 import ru.cft.kompas.v1.security.KeycloakPrincipal;
@@ -73,19 +74,33 @@ public class V1IdpController {
         // TARGET или BOTH (грейды профилей заведены как BOTH).
         // Порядок — по семействам и грейдам (как засеяны: careerTrack, затем грейд),
         // а не по алфавиту, иначе грейды и профессии перемешиваются.
-        List<String> targetRoles = jobPositions.findAll().stream()
+        // Целевые должности: отсортированы по орг-пути (блок → дирекция → семейство → грейд),
+        // чтобы фронт собрал из плоского списка дерево в стабильном порядке.
+        List<JobPosition> selectable = jobPositions.findAll().stream()
                 .filter(position -> position.getType() == PositionType.TARGET
                         || position.getType() == PositionType.BOTH)
-                .sorted(Comparator.comparing(JobPosition::getCareerTrack,
+                .sorted(Comparator.comparing(JobPosition::getOrgBlock,
+                                Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(JobPosition::getOrgDirection,
+                                Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(JobPosition::getCareerTrack,
                                 Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparing(JobPosition::getId,
                                 Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+
+        List<String> targetRoles = selectable.stream()
                 .map(JobPosition::getTitle)
                 .distinct()
                 .toList();
 
+        List<V1TargetPosition> targetPositions = selectable.stream()
+                .map(position -> new V1TargetPosition(position.getTitle(), position.getCareerTrack(),
+                        position.getOrgBlock(), position.getOrgDirection()))
+                .toList();
+
         return new V1Dictionaries(List.copyOf(goalCategories.all()), priorities, developmentTools, stages,
-                targetRoles);
+                targetRoles, targetPositions);
     }
 
     @GetMapping("/draft")

@@ -31,6 +31,12 @@ public class JobPosition {
     @Column(name = "career_track")
     private String careerTrack;
 
+    @Column(name = "org_block")
+    private String orgBlock;
+
+    @Column(name = "org_direction")
+    private String orgDirection;
+
     public Long getId() {
         return id;
     }
@@ -69,5 +75,21 @@ public class JobPosition {
 
     public void setCareerTrack(String careerTrack) {
         this.careerTrack = careerTrack;
+    }
+
+    public String getOrgBlock() {
+        return orgBlock;
+    }
+
+    public void setOrgBlock(String orgBlock) {
+        this.orgBlock = orgBlock;
+    }
+
+    public String getOrgDirection() {
+        return orgDirection;
+    }
+
+    public void setOrgDirection(String orgDirection) {
+        this.orgDirection = orgDirection;
     }
 }
