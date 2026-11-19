@@ -25,7 +25,9 @@
 
 <div class="app">
   <div class="topbar">
-    <svg class="ic grid"><use href="#i-grid"/></svg>
+    <svg class="re-grid" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M3.3335 6.66659H6.66683V3.33325H3.3335V6.66659ZM8.3335 16.6666H11.6668V13.3333H8.3335V16.6666ZM6.66683 16.6666H3.3335V13.3333H6.66683V16.6666ZM3.3335 11.6666H6.66683V8.33325H3.3335V11.6666ZM11.6668 11.6666H8.3335V8.33325H11.6668V11.6666ZM13.3335 3.33325V6.66659H16.6668V3.33325H13.3335ZM11.6668 6.66659H8.3335V3.33325H11.6668V6.66659ZM13.3335 11.6666H16.6668V8.33325H13.3335V11.6666ZM16.6668 16.6666H13.3335V13.3333H16.6668V16.6666Z"/>
+    </svg>
     <span class="logo">RE Team</span>
     <nav class="topnav"><a href="#">Компания</a><a href="#">Подразделение</a><a href="#">Сотрудник</a></nav>
     <div class="right">
@@ -51,11 +53,11 @@
       <h1 class="page">Создать ИПР</h1>
       <p class="sub">Вы можете создать ИПР на себя</p>
 
-      <div class="cta-row">
+      <div class="cta-card">
         <a class="compass-cta" th:href="@{/kompas(employee=${employee.externalId})}">
-          <svg><use href="#i-compass"/></svg> Создать через Компас
+          <svg class="ic"><use href="#i-compass"/></svg> Создать через Компас
         </a>
-        <span class="hint">Соберите план в диалоге — рекомендации из справочников компании</span>
+        <p class="cta-hint">Собери свой индивидуальный план развития в диалоге с ИИ</p>
       </div>
       <div class="rule"></div>
 
@@ -84,7 +86,10 @@
                 <option value=""></option>
                 <option th:each="c : ${goalCategories}" th:text="${c}" th:selected="${c == row.category}"></option>
               </select>
-              <select class="field"><option>- Приоритет -</option></select>
+              <select class="field">
+                <option value="" th:selected="${#strings.isEmpty(row.priority)}">- Приоритет -</option>
+                <option th:each="p : ${ {'Высокий','Средний','Низкий'} }" th:text="${p}" th:selected="${p == row.priority}"></option>
+              </select>
             </div>
             <div class="flabel">Что важно развить внутри направления</div>
             <textarea class="field" th:text="${row.competencies} + (${row.goal} != '' ? ' — ' + ${row.goal} : '')"></textarea>
@@ -153,6 +158,7 @@
     </main>
 
     <aside class="side">
+      <div class="side-scroll">
       <div class="statcard">
         <span class="badge">ИПР</span>
         <h4>Статус ИПР:</h4>
@@ -166,9 +172,29 @@
         <div class="mgr">Руководитель:<b th:text="${employee.managerFullName}">—</b></div>
       </div>
       <button type="button" class="sbtn">Справка и советы <svg class="ic"><use href="#i-chevr"/></svg></button>
-      <div class="tree">
+
+      <!-- Дерево направлений: отражает перенесённый из «Компаса» план -->
+      <div class="tree" th:if="${imported}">
+        <th:block th:each="row : ${imported.rows}">
+          <div class="d">
+            <svg class="ic" style="width:16px;height:16px"><use href="#i-chevr"/></svg>
+            <span th:text="'Направление ' + ${row.order}">Направление 1</span>
+            <span class="chip" th:classappend="${row.filled} ? ' chip--done' : ''"
+                  th:text="${row.filled} ? 'ЗАПОЛНЕНО' : 'НЕ ЗАПОЛНЕНО'">НЕ ЗАПОЛНЕНО</span>
+          </div>
+          <div class="a" th:each="act : ${row.actions}">
+            <span th:text="'• Действие ' + ${act.number}">• Действие 1</span>
+            <span class="dots">···</span>
+          </div>
+          <div class="a" th:if="${#lists.isEmpty(row.actions)}">• Действий нет <span class="dots">···</span></div>
+        </th:block>
+      </div>
+
+      <!-- Пустое создание (без переноса) -->
+      <div class="tree" th:unless="${imported}">
         <div class="d"><svg class="ic" style="width:16px;height:16px"><use href="#i-chevr"/></svg>Направление 1 <span class="chip">НЕ ЗАПОЛНЕНО</span></div>
         <div class="a">• Действие 1 <span class="dots">···</span></div>
+      </div>
       </div>
       <button type="button" class="empbtn"><svg class="ic"><use href="#i-card"/></svg> Информация о сотруднике</button>
     </aside>

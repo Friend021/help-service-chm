@@ -1,57 +1,68 @@
-/* Дизайн-система RE Team для формы «Создать ИПР» */
+/* Дизайн-система RE Team для формы «Создать ИПР» — токены один-в-один с «Компасом» (frontend-v2) */
 :root{
-  --topbar:#262b33; --logo:#e82c49; --subbar:#e8ebef;
-  --page:#ffffff; --ink:#2b3542; --muted:#8a94a0; --muted-2:#9aa6b0;
-  --card-dark:#3a4350; --panel:#eef1f4; --surface:#ffffff;
-  --line:#dfe3e8; --field-line:#d4dae0;
-  --link:#2567e0; --teal:#15a58e;
+  --topbar:#343C47; --topbar-ink:#cfd4db; --logo:#e11d44; --subbar:#d8dce1;
+  --page:#ffffff; --ink:#1f2733; --muted:#8a94a0; --muted-2:#9aa6b0;
+  --card:#eef0f3; --panel:#eef1f4; --surface:#ffffff;
+  --line:#e1e4e8; --field-line:#e1e4e8;
+  --link:#0961a4; --primary-700:#003259; --primary-10:#eaf1ff; --teal:#15a58e;
   --warn-bg:#fcebeb; --warn-line:#f3c9c9; --warn-ink:#d23b3b;
-  --chip:#e6e9ed; --blue-soft:#e9f1fe; --bar-dark:#2b333d;
+  --chip:#e6e9ed; --blue-soft:#eaf1ff; --bar-dark:#1E2329; --high:#d33a3a;
+  /* Тёмный рейл — как в «Компасе» */
+  --rail-bg:#272D35; --rail-card:#ECEFF3; --rail-chip:#25A277; --rail-row:#343C47;
+  --rail-guide:#3A424E; --rail-cta:#D2E4FF; --rail-cta-text:#1B1E21; --rail-muted:#CACDCF;
 }
 *{box-sizing:border-box}
 body{margin:0;background:#f3f5f7;color:var(--ink);
   font-family:"Inter",system-ui,Arial,sans-serif;font-size:14px;line-height:1.5}
 
-.app{max-width:1320px;margin:0 auto;background:var(--page)}
+html,body{height:100%}
+/* Весь экран: шапка+саббар сверху, ниже — main (скроллится) и докнутый рейл; подвал прилипает к низу */
+.app{width:100%;background:var(--page);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.topbar,.subbar{flex:0 0 auto}
 
-/* Верхняя тёмная панель */
-.topbar{display:flex;align-items:center;gap:22px;background:var(--topbar);color:#cdd3da;padding:0 22px;height:56px}
-.topbar .grid{width:22px;height:22px;opacity:.7}
-.logo{background:var(--logo);color:#fff;font-weight:700;font-size:15px;padding:6px 10px;border-radius:7px}
+/* Верхняя тёмная панель — шапка «Компаса» (32px, логотип во всю высоту) */
+.topbar{display:flex;align-items:center;gap:22px;background:var(--topbar);color:var(--topbar-ink);padding:0 22px;height:32px}
+.topbar .re-grid{display:block;width:20px;height:20px;color:#fff;flex:0 0 auto}
+.logo{align-self:stretch;display:flex;align-items:center;background:var(--logo);color:#fff;
+  font-weight:700;font-size:15px;padding:0 14px;letter-spacing:.2px}
 .topnav{display:flex;gap:22px;font-size:14px}
-.topnav a{color:#cdd3da;text-decoration:none}
+.topnav a{color:var(--topbar-ink);text-decoration:none}
 .topnav a:hover{color:#fff}
 .topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
-.header__user{background:transparent;color:#cdd3da;border:1px solid #434a54;border-radius:7px;
-  padding:7px 10px;font:inherit;cursor:pointer}
-.header__user option{color:#2b3542}
-.topbar .ic{width:20px;height:20px;color:#cdd3da}
+.header__user{background:transparent;color:var(--topbar-ink);border:1px solid #434a54;border-radius:6px;
+  padding:2px 8px;font:inherit;font-size:13px;cursor:pointer}
+.header__user option{color:var(--ink)}
+.topbar .ic{width:18px;height:18px;color:var(--topbar-ink)}
 
-/* Под-панель */
-.subbar{display:flex;align-items:center;gap:14px;background:var(--subbar);padding:0 22px;height:58px;border-bottom:1px solid #dce0e5}
-.subbar .gear{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center;border:1px solid #d7dbe0}
-.subbar .title{font-weight:700;font-size:17px}
+/* Под-панель — саббар «Оценка» (60px, светлый #d8dce1, sticky) */
+.subbar{display:flex;align-items:center;gap:14px;background:var(--subbar);color:var(--ink);
+  padding:0 26px;height:60px;position:sticky;top:0;z-index:100}
+.subbar .gear{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center;border:1px solid #c4ccd4}
+.subbar .title{font-weight:700;font-size:17px;color:var(--ink)}
 .subnav{margin-left:auto;display:flex;gap:26px;font-size:14px}
-.subnav a{color:var(--muted);text-decoration:none;font-weight:500}
+.subnav a{color:#5c6672;text-decoration:none;font-weight:500}
 .subnav a.on{color:var(--ink);font-weight:600}
 
 /* Каркас: main + сайдбар */
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 352px;gap:0}
-.main{padding:26px 30px 36px}
-.side{background:#fff;border-left:1px solid var(--line);padding:22px 20px 26px;display:flex;flex-direction:column;gap:16px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0;flex:1 1 auto;min-height:0}
+.main{padding:26px 30px 0;min-height:0;overflow-y:auto}
+.side{background:var(--rail-bg);border-left:0;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:0;overflow:hidden}
+/* Скроллится только середина рейла (статус + дерево); «Информация о сотруднике» вынесена и прижата к низу — как в «Компасе» */
+.side-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
 
 .back{display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-weight:500;font-size:13.5px}
 .back svg{width:16px;height:16px}
-h1.page{font-size:30px;font-weight:700;letter-spacing:-.01em;margin:14px 0 4px}
+h1.page{font-size:30px;font-weight:700;letter-spacing:-.01em;margin:14px 0 4px;color:var(--ink)}
 .sub{color:var(--muted);font-size:14px;margin:0 0 0}
 
 /* Точка входа в Компас */
-.cta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 20px}
-.compass-cta{display:inline-flex;align-items:center;gap:9px;background:var(--teal);color:#fff;
+.cta-card{display:flex;align-items:center;gap:16px;margin:14px 0 20px;
+  padding:14px 16px;background:#f6f8fa;border:1px solid var(--line);border-radius:12px}
+.compass-cta{flex:none;display:inline-flex;align-items:center;gap:9px;background:var(--teal);color:#fff;
   text-decoration:none;border:0;border-radius:9px;padding:12px 18px;font:inherit;font-weight:600;font-size:14.5px;cursor:pointer}
 .compass-cta:hover{background:#12907c}
-.compass-cta svg{width:19px;height:19px}
-.cta-row .hint{color:var(--muted);font-size:13px;max-width:36ch}
+.compass-cta svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cta-hint{flex:1 1 auto;margin:0;color:var(--muted);font-size:13px;line-height:1.45}
 
 .rule{height:1px;background:var(--line);margin:0 0 22px}
 
@@ -60,18 +71,18 @@ h1.page{font-size:30px;font-weight:700;letter-spacing:-.01em;margin:14px 0 4px}
 .notice--error{display:flex;align-items:center;gap:12px;background:var(--warn-bg);border:1px solid var(--warn-line);
   color:var(--warn-ink);border-radius:10px;padding:14px 18px;font-weight:600;font-size:14px;margin-bottom:22px}
 
-/* Тёмная секция-карточка */
-.dcard{background:var(--card-dark);border-radius:12px;padding:22px 24px;margin-bottom:12px}
-.dcard h2{color:#fff;font-size:19px;font-weight:600;margin:0 0 16px}
-.seclabel{font-size:21px;font-weight:700;margin:26px 0 8px}
+/* Светлая секция-карточка направления (как idp-direction-header в «Компасе») */
+.dcard{background:var(--card);border-radius:12px;padding:22px 24px;margin-bottom:12px}
+.dcard h2{color:var(--ink);font-size:19px;font-weight:600;margin:0 0 16px}
+.seclabel{font-size:21px;font-weight:700;margin:26px 0 8px;color:var(--ink)}
 .secdesc{color:var(--muted);font-size:13.5px;max-width:72ch;margin:0 0 16px}
 
 .field{width:100%;background:#fff;border:1px solid var(--field-line);border-radius:8px;
   padding:14px 15px;font:inherit;color:var(--ink);outline:none}
 .field::placeholder{color:var(--muted-2)}
-.field:focus{border-color:#aab9e8;box-shadow:0 0 0 3px rgba(37,103,224,.12)}
+.field:focus{border-color:var(--link);box-shadow:0 0 0 3px rgba(9,97,164,.14)}
 textarea.field{resize:vertical;min-height:84px}
-.flabel{color:#fff;font-size:13.5px;margin:4px 0 8px}
+.flabel{color:#39424e;font-size:13.5px;margin:4px 0 8px}
 
 select.field,select.goal-select{appearance:none;cursor:pointer;color:var(--ink);padding-right:40px;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237b8794' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
@@ -81,10 +92,10 @@ select.field:invalid{color:var(--muted-2)}
 
 /* Светлый вложенный блок «Конкретные действия» */
 .acts{background:var(--panel);border-radius:0 0 12px 12px;margin:-12px 0 12px;padding:20px 22px 22px}
-.acts-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;margin-bottom:14px}
+.acts-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;margin-bottom:14px;color:var(--ink)}
 .acts-h .ln{flex:1;height:1px;background:#d7dde2}
 .wcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:12px}
-.wcard h3{font-size:16px;font-weight:600;margin:0 0 14px}
+.wcard h3{font-size:16px;font-weight:600;margin:0 0 14px;color:var(--ink)}
 .wcard .ln{height:1px;background:var(--line);margin:0 0 14px}
 .arow{display:grid;grid-template-columns:1fr 220px 220px;gap:12px;margin-bottom:14px}
 .mini{color:var(--muted);font-size:12.5px;margin:2px 0 7px}
@@ -104,41 +115,49 @@ select.field:invalid{color:var(--muted-2)}
 .cell-num{text-align:center;color:var(--muted);font-weight:600}
 .cell-due,.cell-status{text-align:center;color:#4a5560}
 
-/* Нижняя тёмная панель */
-.actionbar{display:flex;align-items:center;gap:26px;background:var(--bar-dark);color:#fff;border-radius:10px;padding:16px 22px;margin:22px 0 10px}
+/* Нижняя тёмная панель действий — подвал «Компаса» (#1E2329) */
+.actionbar{display:flex;align-items:center;gap:26px;background:var(--bar-dark);color:#fff;border-radius:12px 12px 0 0;padding:16px 22px;margin:22px 0 0;position:sticky;bottom:0;z-index:5}
 .actionbar button,.actionbar a{display:inline-flex;align-items:center;gap:9px;background:none;border:0;color:#fff;
   text-decoration:none;font:inherit;font-weight:500;cursor:pointer}
 .actionbar svg{width:18px;height:18px}
 .actionbar .disabled{color:#8793a0;margin-left:auto;cursor:not-allowed}
 
 /* Правый сайдбар */
-.statcard{border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(25,35,50,.05)}
-.badge{display:inline-block;background:var(--teal);color:#fff;font-weight:700;font-size:12px;padding:4px 10px;border-radius:7px;letter-spacing:.03em}
-.statcard h4{font-size:15px;font-weight:600;margin:14px 0 12px}
+/* Светлая карточка статуса на тёмном рейле */
+.statcard{background:var(--rail-card);border:0;border-radius:12px;padding:16px;box-shadow:none;color:#1f1f1f}
+.badge{display:inline-block;background:var(--rail-chip);color:#fff;font-weight:700;font-size:12px;padding:4px 10px;border-radius:7px;letter-spacing:.03em}
+.statcard h4{font-size:15px;font-weight:600;margin:14px 0 12px;color:#1f1f1f}
 .status{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
-.status li{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px}
+.status li{display:flex;align-items:center;gap:10px;color:#6b7480;font-size:14px}
 .status li .m{width:13px;height:13px;border-radius:3px;background:#c4cbd3;flex:none}
-.status li.on{color:var(--ink);font-weight:600}
-.status li.on .m{background:var(--card-dark)}
-.mgr{margin-top:16px;color:var(--muted);font-size:13px}
-.mgr b{display:block;color:var(--ink);font-weight:500;margin-top:3px}
-.sbtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fff;border:1px solid var(--line);
-  border-radius:10px;padding:13px 16px;font:inherit;font-weight:600;color:var(--ink);cursor:pointer}
+.status li.on{color:#1f1f1f;font-weight:600}
+.status li.on .m{background:var(--rail-row)}
+.mgr{margin-top:16px;color:#6b7480;font-size:13px}
+.mgr b{display:block;color:#1f1f1f;font-weight:500;margin-top:3px}
+/* «Справка и советы» — тёмная плашка-гид на рейле */
+.sbtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--rail-guide);border:0;
+  border-radius:10px;padding:13px 16px;font:inherit;font-weight:600;color:#fff;cursor:pointer}
 .sbtn svg{width:18px;height:18px}
+/* Дерево направлений на тёмном рейле */
 .tree{font-size:14px}
-.tree .d{display:flex;align-items:center;gap:8px;font-weight:600;padding:6px 0}
-.tree .chip{background:var(--chip);color:var(--muted);font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:5px;letter-spacing:.03em;margin-left:auto}
-.tree .a{display:flex;align-items:center;gap:8px;color:var(--muted);padding:6px 0 6px 22px}
+.tree .d{display:flex;align-items:center;gap:8px;font-weight:600;padding:6px 0;color:#fff}
+.tree .chip{background:rgba(255,255,255,.14);color:#dfe3e8;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:5px;letter-spacing:.03em;margin-left:auto}
+.tree .chip--done{background:#d8f5e3;color:#1b7f4b}
+.tree .a{display:flex;align-items:center;gap:8px;color:var(--rail-muted);padding:6px 0 6px 22px}
 .tree .a .dots{margin-left:auto}
-.empbtn{display:flex;align-items:center;gap:10px;background:var(--blue-soft);color:var(--link);border:0;border-radius:10px;
-  padding:14px 16px;font:inherit;font-weight:600;cursor:pointer;margin-top:auto}
+/* «Информация о сотруднике» — светло-голубая CTA (как idp-rail-cta) */
+.empbtn{display:flex;align-items:center;gap:10px;background:var(--rail-cta);color:var(--rail-cta-text);border:0;border-radius:10px;
+  padding:14px 16px;font:inherit;font-weight:600;cursor:pointer;flex:0 0 auto}
 .empbtn svg{width:19px;height:19px}
 
 svg.ic,.icon{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 @media(max-width:1000px){
+  .app{height:auto;overflow:visible}
   .layout{grid-template-columns:1fr}
+  .main,.side{overflow:visible}
   .side{border-left:0;border-top:1px solid var(--line)}
+  .actionbar{position:static}
   .inrow,.arow{grid-template-columns:1fr}
 }
 @media(max-width:620px){
