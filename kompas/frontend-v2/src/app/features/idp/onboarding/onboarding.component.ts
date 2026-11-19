@@ -222,10 +222,11 @@ interface OrgRow {
     .submit-error { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 12px; background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); border-radius: 8px; font-size: 0.875rem; max-width: 980px; }
 
     .ob-foot { flex: 0 0 auto; max-width: 1000px; width: 100%; margin: 0 auto; border-radius: 12px 12px 0 0; }
-    .fbtn { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 0; color: #fff; font-size: 14px; padding: 6px 4px; cursor: pointer; }
-    .fbtn mat-icon { width: 17px; height: 17px; font-size: 17px; }
-    .fbtn.primary { background: var(--primary-500); border-radius: 8px; padding: 8px 18px; }
-    .fbtn.primary:disabled { opacity: .5; cursor: default; }
+    .fbtn { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 0; color: #fff; font-size: 15px; font-weight: 600; padding: 6px 4px; cursor: pointer; }
+    .fbtn mat-icon { width: 18px; height: 18px; font-size: 18px; }
+    /* Первичное действие («Далее»): плоский светло-голубой текст со стрелкой, без заливки. */
+    .fbtn.primary { color: #8fb8f5; }
+    .fbtn.primary:disabled { color: rgba(255, 255, 255, .42); cursor: default; }
 
     @media (max-width: 720px) {
       .ob-scroll { padding: 18px 16px; }

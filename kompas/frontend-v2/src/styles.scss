@@ -779,10 +779,19 @@ mat-icon.mat-icon,
   border-color: rgba(255, 255, 255, 0.22);
 }
 
-// Disabled у залитой primary: тусклый тёмный фон вместо светлого «пятна».
-.idp-actionbar .mat-mdc-unelevated-button[disabled] {
-  --mdc-filled-button-disabled-container-color: rgba(255, 255, 255, 0.12);
-  background-color: rgba(255, 255, 255, 0.12);
+// Первичное действие на тёмной полосе: плоский светло-голубой текст со стрелкой
+// (как «Далее →» в эталоне), без синей заливки. .mat-primary — чтобы перебить
+// токен контейнера, который Material задаёт на той же специфичности.
+.idp-actionbar .mat-mdc-unelevated-button.mat-primary,
+.idp-actionbar .mat-mdc-unelevated-button {
+  --mdc-filled-button-container-color: transparent;
+  --mdc-filled-button-disabled-container-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+}
+.idp-actionbar .mat-mdc-unelevated-button.mat-primary:not([disabled]) .mdc-button__label,
+.idp-actionbar .mat-mdc-unelevated-button.mat-primary:not([disabled]) .mat-icon {
+  color: #8fb8f5;
 }
 
 
