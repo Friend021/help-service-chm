@@ -179,10 +179,7 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
               <mat-icon>arrow_back</mat-icon>
               Назад
             </button>
-            <button mat-stroked-button (click)="fillWithDialog()" [disabled]="!store.allSkillsRated() || store.isStreaming()">
-              <mat-icon>forum</mat-icon>
-              Заполнить в диалоге
-            </button>
+            <span class="idp-actionbar__spacer"></span>
             <button
               mat-flat-button
               color="primary"
@@ -584,11 +581,6 @@ export class AssessmentComponent implements AfterViewInit, OnDestroy {
         await this.router.navigate(['/idp/draft']);
       }
     });
-  }
-
-  /** Переход в черновик: если плана нет, страница запустит диалог заполнения. */
-  fillWithDialog(): void {
-    this.router.navigate(['/idp/draft']);
   }
 
   goBack(): void {
