@@ -124,8 +124,8 @@ cd kompas\frontend-v2 && npm install && npm start   # :4200
 | `process-full.md` | Подробнейшая спецификация сквозного процесса (шаги, эндпоинты, SSE) + дословные промпты из кода. |
 | `handoff-context.md` | Контракт входа `HandoffContext`: что «План развития» передаёт в «Компас» (JSON, поля, открытые вопросы). |
 | `employee-data-requirements.md` | Какие данные о сотруднике нужны и откуда. |
-| `integration.md`, `llm.md`, `status.md` | Контракт входа, выбор LLM/RAG, состояние (частично по старому стеку). |
-| `*.drawio`, `Схема работы.drawio` | Визуальные схемы процесса и архитектуры (открывать в draw.io / diagrams.net). |
+| `llm.md` | Выбор LLM-провайдера, RAG, переход на внутренний шлюз `ai.redelephant`. |
+| `kompas-schema-v2.drawio`, `Схема работы.drawio` | Визуальные схемы процесса и архитектуры (открывать в draw.io / diagrams.net). |
 
 ---
 
