@@ -1,3 +1,16 @@
+# Единый запуск АКТУАЛЬНОГО стека «Компас» (frontend-v2 + Keycloak-мок) одной командой:
+#
+#     docker compose up --build
+#
+# Открыть:  http://localhost:8081  →  вход demo / demo  →  «Создать через Компас»
+#
+# LLM и секреты берутся из .env (скопируй из .env.example). Без ключа LLM работает
+# детерминированный мок (KOMPAS_LLM_PROVIDER=mock по умолчанию) — сценарий проходится офлайн.
+# Старый стек (frontend Angular 18 + /api/sessions) — в docker-compose.legacy-stack.yml.
+#
+# Разводка Keycloak: issuer в токене = http://localhost:3000 (браузер логинится туда),
+# а бэкенд/legacy тянут JWKS/token из контейнера по сетевому алиасу auth-mock:3000.
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -16,46 +29,67 @@ services:
       timeout: 3s
       retries: 30
 
+  auth-mock:
+    build: ./auth-mock
+    container_name: kompas-auth-mock
+    environment:
+      PUBLIC_URL: http://localhost:3000
+      ALLOWED_REDIRECT_ORIGINS: http://localhost:4200,http://localhost:8081
+      CORS_ORIGINS: http://localhost:4200,http://localhost:8081
+    ports:
+      - "3000:3000"
+
   backend:
-    build:
-      context: ./backend
+    build: ./backend
     container_name: kompas-backend
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kompas
       SPRING_DATASOURCE_USERNAME: kompas
       SPRING_DATASOURCE_PASSWORD: kompas
+      # LLM: по умолчанию mock (офлайн). Для живого — задай LLM_PROVIDER/LLM_API_KEY в .env
       KOMPAS_LLM_PROVIDER: ${LLM_PROVIDER:-mock}
       KOMPAS_LLM_BASE_URL: ${LLM_BASE_URL:-https://openrouter.ai/api/v1}
       KOMPAS_LLM_API_KEY: ${LLM_API_KEY:-}
       KOMPAS_LLM_MODEL: ${LLM_MODEL:-openai/gpt-4o-mini}
       KOMPAS_LLM_FALLBACK_MODEL: ${LLM_FALLBACK_MODEL:-}
-      KOMPAS_SECURITY_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
-      KOMPAS_LEGACY_IMPORT_URL: ${LEGACY_IMPORT_URL:-http://localhost:8081/import}
+      # Общий HMAC-секрет с legacy-stub (entry/handover-токены). Должен совпадать у обоих.
+      KOMPAS_SECURITY_JWT_SECRET: ${JWT_SECRET:-kompas-local-docker-hmac-secret-change-me-0123456789}
+      # issuer — как в токене (браузер → localhost:3000); JWKS — из контейнера по алиасу auth-mock
+      KOMPAS_KEYCLOAK_ISSUER_URI: http://localhost:3000/realms/compass
+      KOMPAS_KEYCLOAK_JWKS_URI: http://auth-mock:3000/realms/compass/protocol/openid-connect/certs
+      KOMPAS_LEGACY_IMPORT_URL: http://localhost:8081/import
     ports:
       - "8090:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      auth-mock:
+        condition: service_started
 
-  frontend:
-    build:
-      context: ./frontend
-    container_name: kompas-frontend
+  legacy-stub:
+    build: ./legacy-stub
+    container_name: kompas-legacy-stub
+    environment:
+      LEGACY_JWT_SECRET: ${JWT_SECRET:-kompas-local-docker-hmac-secret-change-me-0123456789}
+      LEGACY_KOMPAS_FRONTEND_URL: http://localhost:4200
+      # authorization — браузерный редирект (localhost:3000); token/jwks/userinfo — backchannel на auth-mock
+      OIDC_AUTH_URI: http://localhost:3000/realms/compass/protocol/openid-connect/auth
+      OIDC_TOKEN_URI: http://auth-mock:3000/realms/compass/protocol/openid-connect/token
+      OIDC_JWKS_URI: http://auth-mock:3000/realms/compass/protocol/openid-connect/certs
+      OIDC_USERINFO_URI: http://auth-mock:3000/realms/compass/protocol/openid-connect/userinfo
+    ports:
+      - "8081:8081"
+    depends_on:
+      auth-mock:
+        condition: service_started
+
+  frontend-v2:
+    build: ./frontend-v2
+    container_name: kompas-frontend-v2
     ports:
       - "4200:80"
     depends_on:
       - backend
-
-  legacy-stub:
-    build:
-      context: ./legacy-stub
-    container_name: kompas-legacy-stub
-    environment:
-      LEGACY_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
-      LEGACY_KOMPAS_FRONTEND_URL: ${KOMPAS_FRONTEND_URL:-http://localhost:4200}
-    ports:
-      - "8081:8081"
 
 volumes:
   kompas-pgdata:

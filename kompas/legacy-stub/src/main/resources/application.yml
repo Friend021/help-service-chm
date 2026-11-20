@@ -25,7 +25,14 @@ spring:
             provider: keycloak
         provider:
           keycloak:
-            issuer-uri: ${OIDC_ISSUER_URI:http://localhost:3000/realms/compass}
+            # Явные эндпоинты вместо issuer-uri — Spring НЕ делает OIDC discovery.
+            # Браузерный authorization-uri уходит в редирект входа (localhost:3000),
+            # backchannel (token/jwks/userinfo) по умолчанию тоже localhost (локальный запуск),
+            # а в docker переопределяется на http://auth-mock:3000 (см. docker-compose.yml).
+            authorization-uri: ${OIDC_AUTH_URI:http://localhost:3000/realms/compass/protocol/openid-connect/auth}
+            token-uri: ${OIDC_TOKEN_URI:http://localhost:3000/realms/compass/protocol/openid-connect/token}
+            jwk-set-uri: ${OIDC_JWKS_URI:http://localhost:3000/realms/compass/protocol/openid-connect/certs}
+            user-info-uri: ${OIDC_USERINFO_URI:http://localhost:3000/realms/compass/protocol/openid-connect/userinfo}
             user-name-attribute: preferred_username
   thymeleaf:
     cache: false

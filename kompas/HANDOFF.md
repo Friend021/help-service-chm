@@ -65,40 +65,45 @@ kompas/
 
 ---
 
-## 4. Как запустить (актуальный стек, Windows)
+## 4. Как запустить
 
-Нужно: **JDK 21** (Temurin), **Node.js 20+**, **Docker** (только Postgres), PowerShell.
+### Вариант A — одной командой (рекомендуется)
 
-```powershell
-# 0. .env — скопировать из шаблона и заполнить (см. §5)
-copy kompas\.env.example kompas\.env
+Нужен только **Docker Desktop**, больше ничего ставить не надо.
 
-# 1. Postgres
-docker compose up -d postgres          # :5433, БД/логин/пароль kompas
-
-# 2. Mock-Keycloak (авторизация)
-.\kompas\run-authmock-local.ps1        # :3000, realm compass
-
-# 3. Backend «Компас»
-.\kompas\run-backend-local.ps1         # :8090, /api/v1, живой LLM
-
-# 4. Заглушка «ПЛАН РАЗВИТИЯ» (точка входа)
-.\kompas\run-legacy-local.ps1          # :8081
-
-# 5. Фронт
-cd kompas\frontend-v2 && npm install && npm start   # :4200
+```bash
+cp kompas/.env.example kompas/.env     # по желанию: вписать LLM_API_KEY для живого ИИ
+cd kompas
+docker compose up --build
 ```
 
-**Сценарий:** открыть **http://localhost:8081** → войти (Keycloak, **demo / demo**) → выбрать
-сотрудника → «**Сформировать с помощью Компаса**» → диалог на :4200 → черновик → экспорт обратно.
+Поднимается весь актуальный стек: **postgres + auth-mock (Keycloak) + backend + legacy-stub +
+frontend-v2**. Открыть **http://localhost:8081** → войти **demo / demo** → «**Создать через Компас**»
+→ диалог на :4200 → черновик → экспорт обратно.
+
+- **Без ключа LLM** работает детерминированный мок — сценарий проходится целиком офлайн.
+- **С живым ИИ:** в `.env` задать `LLM_PROVIDER=openrouter` и `LLM_API_KEY` (см. §5).
+- Остановить: `docker compose down` (данные БД — в volume; `docker compose down -v` сотрёт их).
+- Проверено сквозняком: вход через Keycloak-мок в docker, онбординг, авторизация `/api/v1` — ОК.
+
+### Вариант B — локально, без контейнеров (для разработки)
+
+Нужны **JDK 21** (Temurin) + **Node 20+** + Docker (только для Postgres). Пять процессов:
+
+```powershell
+docker compose up -d postgres          # :5433
+.\kompas\run-authmock-local.ps1        # :3000  mock-Keycloak
+.\kompas\run-backend-local.ps1         # :8090  /api/v1
+.\kompas\run-legacy-local.ps1          # :8081  точка входа
+cd kompas\frontend-v2; npm install; npm start   # :4200
+```
+
+> **Важно (вариант B):** backend и legacy-stub поднимать **только через `run-*.ps1`** — они берут
+> общий `JWT_SECRET` и ключ LLM из `kompas/.env`. Голый `gradlew bootRun` подпишет токен дефолтным
+> секретом, и «Компас» отвергнет вход. (В варианте A это уже прописано в `docker-compose.yml`.)
 
 Порты 8090/5433 выбраны, чтобы не конфликтовать (8080/5432 часто заняты).
-**Без ключа LLM:** в `.env` поставить `SPRING_PROFILES_ACTIVE=local` — включается офлайн-заглушка,
-сценарий проходится целиком на детерминированных ответах.
-
-> **Важно:** backend и legacy-stub поднимать **только через `run-*.ps1`** — они берут общий
-> `JWT_SECRET` и ключ LLM из `kompas/.env`. Голый `gradlew bootRun` подпишет токен дефолтным
-> секретом, и «Компас» отвергнет вход.
+Старый стек (frontend Angular 18) — отдельный `docker-compose.legacy-stack.yml`, для боевой не нужен.
 
 ---
 
