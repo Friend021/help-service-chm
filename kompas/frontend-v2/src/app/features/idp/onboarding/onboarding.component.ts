@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
@@ -19,7 +20,7 @@ type Mode = 'none' | 'current' | 'target';
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, StageIndicatorComponent],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, StageIndicatorComponent],
   template: `
     <div class="onboarding-page">
       <app-stage-indicator
@@ -80,8 +81,12 @@ type Mode = 'none' | 'current' | 'target';
             <span>Важно: целевая должность определяет компетенционный профиль для опросника на следующем шаге</span>
           </div>
 
-          @if (selectedTarget(); as sel) {
-            <div class="pos-card">
+          <div class="pos-card">
+            <button type="button" class="card-edit" (click)="openPositionPicker()"
+                    matTooltip="Изменить должность" aria-label="Изменить целевую должность">
+              <mat-icon>edit</mat-icon>
+            </button>
+            @if (selectedTarget(); as sel) {
               <div class="pos-title">Целевая должность:&nbsp; <b>{{ sel }}</b></div>
               @if (targetCrumbs(); as crumbs) {
                 <div class="crumb">{{ crumbs }}</div>
@@ -96,15 +101,11 @@ type Mode = 'none' | 'current' | 'target';
                   </ul>
                 </div>
               }
-            </div>
-            <button type="button" class="pick-btn" (click)="openPositionPicker()">
-              <mat-icon>edit</mat-icon> Изменить должность
-            </button>
-          } @else {
-            <button type="button" class="pick-btn" (click)="openPositionPicker()">
-              <mat-icon>account_tree</mat-icon> Выбрать должность
-            </button>
-          }
+            } @else {
+              <div class="pos-title">Целевая должность не выбрана</div>
+              <p class="fn-note">Нажмите <mat-icon class="inline-edit">edit</mat-icon> справа, чтобы выбрать целевую должность.</p>
+            }
+          </div>
         }
 
         @if (submitError(); as error) {
@@ -152,7 +153,17 @@ type Mode = 'none' | 'current' | 'target';
     .radio.checked .dot { border-color: #1f6fd4; }
     .radio.checked .dot::after { transform: scale(1); }
 
-    .pos-card { margin-top: 18px; background: #eef0f3; border-radius: 12px; padding: 20px 22px; max-width: 980px; }
+    .pos-card { position: relative; margin-top: 18px; background: #eef0f3; border-radius: 12px; padding: 20px 22px; max-width: 980px; }
+    .pos-card .card-edit {
+      position: absolute; top: 14px; right: 14px;
+      width: 36px; height: 36px; border: 0; border-radius: 9px;
+      background: transparent; color: #1f6fd4; cursor: pointer;
+      display: grid; place-items: center; transition: background .12s;
+    }
+    .pos-card .card-edit:hover { background: #e2e7ee; }
+    .pos-card .card-edit mat-icon { width: 20px; height: 20px; font-size: 20px; }
+    .pos-card .pos-title { padding-right: 44px; }
+    .inline-edit { width: 16px; height: 16px; font-size: 16px; vertical-align: text-bottom; color: #1f6fd4; }
     .pos-card .pos-title { font-size: 16px; color: #1f2733; }
     .pos-card .pos-title b { font-weight: 600; }
     .pos-card .crumb { margin: 6px 0 0; color: #8a94a0; font-size: 14px; }
@@ -164,10 +175,6 @@ type Mode = 'none' | 'current' | 'target';
 
     .info { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; background: #e9eef7; color: #2f6fd4; border-radius: 10px; padding: 14px 16px; max-width: 980px; font-size: 15px; line-height: 1.45; }
     .info .i { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; background: #1f6fd4; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; margin-top: 1px; }
-
-    .pick-btn { margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px; border: 1px solid #cdd3da; border-radius: 10px; background: #fbfcfd; color: #0961a4; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; transition: background .12s, border-color .12s; }
-    .pick-btn:hover { background: #eef4fb; border-color: #9cc0ea; }
-    .pick-btn mat-icon { width: 20px; height: 20px; font-size: 20px; }
 
     .submit-error { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 12px; background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); border-radius: 8px; font-size: 0.875rem; max-width: 980px; }
 
@@ -229,6 +236,7 @@ export class OnboardingComponent {
   });
 
   selectMode(mode: Mode): void {
+    const prev = this.mode();
     this.mode.set(mode);
     this.submitError.set('');
     if (mode === 'current') {
@@ -237,6 +245,9 @@ export class OnboardingComponent {
     } else if (mode === 'target') {
       const sel = this.selectedTarget();
       if (sel) void this.store.loadTargetPositionProfile(sel);
+      // При выборе радио «целевая должность» сразу открываем попап выбора.
+      // Дальше сменить должность можно карандашом в углу карточки.
+      if (prev !== 'target') void this.openPositionPicker();
     }
   }
 
