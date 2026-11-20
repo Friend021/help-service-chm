@@ -33,7 +33,7 @@
 | API | `/api/*` (`ru.cft.kompas.*`), HS256-токен | **`/api/v1/*` (`ru.cft.kompas.v1.*`), Keycloak RS256 + SSE** |
 | Авторизация | HMAC-токен входа | **Keycloak** (dev-мок `auth-mock/`) |
 | LLM | gpt-4o-mini | **gpt-4.1** (fallback gpt-4o) |
-| Запуск | `docker compose up` | **`run-*.ps1`** локально (кроме Postgres в docker) |
+| Запуск | `docker-compose.legacy-stack.yml` | **`docker compose up`** (или `run-*.ps1` локально) — см. §4 |
 | Описан в | `README.md` (**частично устарел!**) | `docs/v1-integration-plan.md`, `docs/process-full.md` |
 
 > **`README.md` описывает СТАРЫЙ стек** (frontend/, `/api/sessions`, 6 стадий, docker compose).
