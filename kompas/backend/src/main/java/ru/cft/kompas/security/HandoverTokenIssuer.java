@@ -47,6 +47,7 @@ public class HandoverTokenIssuer {
                 .claim("managerName", view.managerName())
                 .claim("currentPosition", view.currentPosition())
                 .claim("targetRole", view.targetRole())
+                .claim("mainGoal", view.mainGoal())
                 .claim("date", view.date() == null ? null : view.date().toString())
                 .claim("priorities", rows(view))
                 .issuedAt(Date.from(now))
@@ -73,8 +74,10 @@ public class HandoverTokenIssuer {
         List<Map<String, Object>> rows = new ArrayList<>();
         int order = 1;
         for (IdpView.PriorityView priority : sorted) {
+            int orderValue = priority.order() == null ? order : priority.order();
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("order", priority.order() == null ? order : priority.order());
+            row.put("order", orderValue);
+            row.put("priority", priorityLabel(orderValue));
             row.put("category", priority.goalCategory());
             row.put("goal", priority.developmentGoal());
             row.put("competencies", join(priority.competencies()));
@@ -83,6 +86,15 @@ public class HandoverTokenIssuer {
             order++;
         }
         return rows;
+    }
+
+    /** Номер приоритета (1-й, 2-й, …) → метка выпадающего списка формы. */
+    private static String priorityLabel(int order) {
+        return switch (order) {
+            case 1 -> "Высокий";
+            case 2 -> "Средний";
+            default -> "Низкий";
+        };
     }
 
     /** Строки таблицы «как развиваем» под целью — колонки формы один в один. */

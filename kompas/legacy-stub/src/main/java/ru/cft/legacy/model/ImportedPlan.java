@@ -13,14 +13,16 @@ public record ImportedPlan(String employeeExternalId,
                            String managerName,
                            String currentPosition,
                            String targetRole,
+                           String mainGoal,
                            String date,
                            List<Row> rows) {
 
-    public record Row(int order, String category, String goal, String competencies,
+    public record Row(int order, String priority, String category, String goal, String competencies,
                       List<Action> actions) {
 
         static Row from(Map<String, Object> raw) {
             return new Row(toInt(raw.get("order")),
+                    text(raw.get("priority")),
                     text(raw.get("category")),
                     text(raw.get("goal")),
                     text(raw.get("competencies")),
@@ -30,6 +32,13 @@ public record ImportedPlan(String employeeExternalId,
         /** Заголовок блока действий под целью — то, что стоит в колонке «Что развиваем?». */
         public String title() {
             return competencies.isBlank() ? goal : competencies;
+        }
+
+        /** Направление заполнено: есть категория и хотя бы одно полное действие. */
+        public boolean filled() {
+            return !category.isBlank() && !actions.isEmpty()
+                    && actions.stream().allMatch(a ->
+                            !a.instrument().isBlank() && !a.action().isBlank() && !a.dueDate().isBlank());
         }
     }
 

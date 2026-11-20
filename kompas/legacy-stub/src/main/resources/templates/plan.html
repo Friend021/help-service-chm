@@ -70,7 +70,8 @@
 
       <div class="dcard">
         <h2>Ключевая цель создания ИПР</h2>
-        <input class="field" placeholder="- Напишите цель создания ИПР -">
+        <input class="field" placeholder="- Напишите цель создания ИПР -"
+               th:value="${imported != null ? imported.mainGoal : null}">
       </div>
 
       <div class="seclabel">Основные направления развития</div>

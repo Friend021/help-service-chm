@@ -72,7 +72,7 @@ class HandoverTokenIssuerTest {
     @Test
     void план_без_действий_переносится_с_пустой_таблицей() {
         IdpView bare = new IdpView(7L, LocalDate.of(2026, 9, 25), "DRAFT", "emp-001", "Сотрудник",
-                "Руководитель", "Разработчик Java", "Ведущий разработчик Java",
+                "Руководитель", "Разработчик Java", "Ведущий разработчик Java", "Переход на ведущего",
                 List.of(new IdpView.PriorityView(1, null, "Цель", List.of(), List.of())));
 
         @SuppressWarnings("unchecked")
@@ -94,7 +94,7 @@ class HandoverTokenIssuerTest {
     private static IdpView view() {
         return new IdpView(42L, LocalDate.of(2026, 9, 25), "DRAFT", "emp-002",
                 "Ковалёв Артём Сергеевич", "Верещагин Олег Борисович",
-                "Ведущий разработчик Java", "Архитектор решений",
+                "Ведущий разработчик Java", "Архитектор решений", "Переход на архитектора решений",
                 List.of(
                         new IdpView.PriorityView(2, "Изучение продуктов", "Вторая цель",
                                 List.of(new IdpView.NamedRef("ARC-06", "Влияние и переговоры", null),

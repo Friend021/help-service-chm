@@ -12,6 +12,7 @@ public record IdpView(Long id,
                       String managerName,
                       String currentPosition,
                       String targetRole,
+                      String mainGoal,
                       List<PriorityView> priorities) {
 
     public record PriorityView(Integer order,

@@ -94,6 +94,7 @@ public class IdpViewAssembler {
                 employee == null ? null : employee.getManagerFullName(),
                 currentPosition,
                 targetRole,
+                idp.getMainGoal(),
                 priorities);
     }
 }

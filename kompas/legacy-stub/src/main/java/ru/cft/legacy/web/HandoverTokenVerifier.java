@@ -45,6 +45,7 @@ public class HandoverTokenVerifier {
                     claims.get("managerName", String.class),
                     claims.get("currentPosition", String.class),
                     claims.get("targetRole", String.class),
+                    claims.get("mainGoal", String.class),
                     claims.get("date", String.class),
                     ImportedPlan.rows(raw));
         } catch (JwtException | IllegalArgumentException e) {
