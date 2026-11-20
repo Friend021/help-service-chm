@@ -261,7 +261,7 @@ export class IdpWorkflowService {
         this.streamErrorSurfaced = true;
         this.store.setStreaming(false);
         this.store.addChatMessage(
-          this.buildMessage('assistant', this.streamErrorMessage(payload.code, payload.message))
+          this.buildMessage('assistant', this.streamErrorMessage(payload.code, payload.message), true)
         );
         break;
       }
@@ -380,12 +380,13 @@ export class IdpWorkflowService {
     }
   }
 
-  private buildMessage(role: ChatMessage['role'], content: string): ChatMessage {
+  private buildMessage(role: ChatMessage['role'], content: string, isError = false): ChatMessage {
     return {
       id: crypto.randomUUID(),
       role,
       content,
       createdAt: new Date().toISOString(),
+      isError,
     };
   }
 

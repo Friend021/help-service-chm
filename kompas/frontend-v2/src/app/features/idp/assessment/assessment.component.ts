@@ -11,7 +11,6 @@ import { IdpStoreService } from '../../../core/state/idp-store.service';
 import { IdpWorkflowService } from '../services/idp-workflow.service';
 import { SkillRatingComponent } from '../../../shared/components/skill-rating/skill-rating.component';
 import { StageIndicatorComponent } from '../../../shared/components/stage-indicator/stage-indicator.component';
-import { ChatMessageComponent } from '../../../shared/components/chat-message/chat-message.component';
 import { GenerationOverlayComponent } from '../../../shared/components/generation-overlay/generation-overlay.component';
 import { VoskDictationService } from '../../../core/speech/vosk-dictation.service';
 import { WorkflowStage } from '../../../models/idp.models';
@@ -35,7 +34,6 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
     MatTooltipModule,
     SkillRatingComponent,
     StageIndicatorComponent,
-    ChatMessageComponent,
     GenerationOverlayComponent,
   ],
   template: `
@@ -51,26 +49,43 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
         (navigate)="onStageNavigate($event)"
       />
 
+      <a class="back" href="#" (click)="$event.preventDefault()">
+        <mat-icon>arrow_back</mat-icon> На главную
+      </a>
+      <h1>Создать ИПР: Компас</h1>
+      <p class="sub">Собрать индивидуальный план развития в диалоге с ИИ</p>
+      <div class="rule"></div>
+
       <div class="assessment-content">
         <!--
-          Чат живёт своей жизнью: он появляется, как только есть переписка или
-          активен поток, и НЕ подменяет опросник. Раньше карточки были
-          взаимоисключающими (@if isStreaming / @else questionnaire), из-за чего
-          каждый старт/останов SSE пересоздавал весь блок — визуальное мигание.
+          Вместо «болтовни» ассистента — статичное пояснение, что это за экран и
+          как оценки влияют на черновик. Ошибки инициализации (SSE ERROR) всё ещё
+          нужно показать — выводим их отдельным алертом (isError).
         -->
-        @if (store.messages().length > 0 || store.isStreaming()) {
-          <mat-card class="chat-card" appearance="outlined">
-            <mat-card-header>
-              <mat-card-title>AI Ассистент</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="chat-messages">
-                @for (msg of store.messages(); track msg.id) {
-                  <app-chat-message [message]="msg" [isStreaming]="store.currentStreamingMessageId() === msg.id" />
-                }
-              </div>
-            </mat-card-content>
-          </mat-card>
+        @if (store.skills().length > 0) {
+          <section class="explain">
+            <h2 class="explain-title">Самооценка компетенций</h2>
+            <p class="explain-text">
+              Ниже — ключевые компетенции целевой должности@if (targetTitle(); as t) { «{{ t }}»}, которые
+              ИИ выделил из профиля должности. Оцените каждую по шкале от 1 до 5 — насколько уверенно
+              вы владеете ею сейчас.
+            </p>
+            <p class="explain-text">
+              <b>Чем ниже балл — тем выше приоритет компетенции в черновике ИПР.</b> Система в первую
+              очередь предложит развивающие действия для навыков, которые вы оценили низко.
+            </p>
+          </section>
+        }
+
+        @if (errorMessages().length > 0) {
+          <div class="assess-error" role="alert">
+            <mat-icon>error_outline</mat-icon>
+            <div class="assess-error__body">
+              @for (m of errorMessages(); track m.id) {
+                <p>{{ m.content }}</p>
+              }
+            </div>
+          </div>
         }
 
         <!--
@@ -240,25 +255,35 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
       border-radius: 12px 12px 0 0;
     }
 
+    /* Заголовок страницы — как на онбординге, для единообразия шапки. */
+    .back { display: inline-flex; align-items: center; gap: 8px; color: #8a94a0; text-decoration: none; font-size: 14px; margin-bottom: 12px; }
+    .back mat-icon { width: 17px; height: 17px; font-size: 17px; }
+    h1 { margin: 0; font: 700 32px/1.1 var(--font-medium); letter-spacing: -.01em; color: #1f2733; }
+    .sub { margin: 4px 0 0; color: #8a94a0; font-size: 15px; }
+    .rule { height: 1px; background: #e3e6ea; margin: 18px 0 22px; }
+
     .assessment-content {
-      margin-top: 24px;
+      margin-top: 0;
       display: flex;
       flex-direction: column;
       gap: 24px;
     }
 
-    .chat-card {
-      max-height: 300px;
-    }
+    /* Пояснение: что это за экран и как оценки влияют на черновик. */
+    .explain { display: flex; flex-direction: column; gap: 10px; }
+    .explain-title { margin: 0; font: 600 22px/1.2 var(--font-medium); color: #1f2733; }
+    .explain-text { margin: 0; color: #4a5560; font-size: 15px; line-height: 1.55; }
+    .explain-text b { color: #1f2733; font-weight: 600; }
 
-    .chat-messages {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-      padding: 8px 0;
+    /* Алерт ошибки инициализации/генерации (вместо чата). */
+    .assess-error {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px 16px; border-radius: 10px;
+      background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container);
     }
+    .assess-error mat-icon { flex: 0 0 auto; }
+    .assess-error__body { display: flex; flex-direction: column; gap: 4px; }
+    .assess-error__body p { margin: 0; font-size: 14px; line-height: 1.5; }
 
     .questionnaire-card {
       width: 100%;
@@ -542,6 +567,12 @@ export class AssessmentComponent implements AfterViewInit, OnDestroy {
   ratedCount = computed(() =>
     this.store.skills().filter(s => typeof s.rating === 'number').length
   );
+
+  /** Название целевой должности для пояснения (пусто — опустим из текста). */
+  readonly targetTitle = computed(() => this.store.context()?.targetPosition?.trim() || '');
+
+  /** Только сообщения-ошибки (SSE ERROR): показываются алертом вместо чата. */
+  readonly errorMessages = computed(() => this.store.messages().filter(m => m.isError));
 
   /** Single source of truth: store ratings map (drives generateDraft). */
   onRatingChanged(skillId: string, rating: number | null): void {

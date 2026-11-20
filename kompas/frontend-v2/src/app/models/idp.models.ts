@@ -118,6 +118,8 @@ export interface ChatMessage {
   role: 'assistant' | 'user';
   content: string;
   createdAt: string;
+  /** true — сообщение-ошибка (SSE ERROR): показывается как алерт, а не как обычная реплика. */
+  isError?: boolean;
 }
 
 export type ChatRole = 'assistant' | 'user';
