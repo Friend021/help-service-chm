@@ -63,7 +63,7 @@ interface OrgRow {
                     role="treeitem" [attr.aria-selected]="selected() === row.title"
                     (click)="selectLeaf(row.title!)">
               <span class="dot"></span>
-              <span class="nlabel">{{ row.label }}</span>
+              <span class="nlabel">@for (seg of highlight(row.label); track $index) {<span [class.hit]="seg.hit">{{ seg.text }}</span>}</span>
             </button>
           } @else {
             <button type="button" class="node branch" [class.fam]="row.kind === 'family'"
@@ -72,7 +72,7 @@ interface OrgRow {
                     (click)="toggle(row.key)">
               <mat-icon class="chev" [class.open]="row.expanded">chevron_right</mat-icon>
               <mat-icon class="kico">{{ row.kind === 'family' ? 'person' : 'folder' }}</mat-icon>
-              <span class="nlabel">{{ row.label }}</span>
+              <span class="nlabel">@for (seg of highlight(row.label); track $index) {<span [class.hit]="seg.hit">{{ seg.text }}</span>}</span>
             </button>
           }
         } @empty {
@@ -109,6 +109,7 @@ interface OrgRow {
     .node { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 15px; color: #39424e; cursor: pointer; background: none; border: 0; padding: 9px 10px; text-align: left; border-radius: 8px; }
     .node:hover { background: #f3f5f8; }
     .node .nlabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .node .nlabel .hit { background: #ffe08a; color: #5a3d00; border-radius: 3px; padding: 0 1px; font-weight: 600; }
 
     .branch .chev { width: 20px; height: 20px; font-size: 20px; color: #8a94a0; flex: 0 0 auto; transition: transform .15s; }
     .branch .chev.open { transform: rotate(90deg); }
@@ -259,6 +260,27 @@ export class PositionPickerDialogComponent {
   collapseAll(): void { this.expanded.set(new Set()); }
 
   selectLeaf(title: string): void { this.selected.set(title); }
+
+  /** Разбивает метку на сегменты, помечая hit=true у частей, совпавших с поисковым запросом. */
+  highlight(label: string): { text: string; hit: boolean }[] {
+    const q = this.search().trim();
+    if (!q) return [{ text: label, hit: false }];
+    const lower = label.toLowerCase();
+    const ql = q.toLowerCase();
+    const parts: { text: string; hit: boolean }[] = [];
+    let i = 0;
+    while (i < label.length) {
+      const idx = lower.indexOf(ql, i);
+      if (idx < 0) {
+        parts.push({ text: label.slice(i), hit: false });
+        break;
+      }
+      if (idx > i) parts.push({ text: label.slice(i, idx), hit: false });
+      parts.push({ text: label.slice(idx, idx + q.length), hit: true });
+      i = idx + q.length;
+    }
+    return parts;
+  }
 
   confirm(): void {
     if (this.selected()) this.dialogRef.close(this.selected()!);
