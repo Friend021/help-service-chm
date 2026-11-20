@@ -13,6 +13,8 @@ public class KompasProperties {
     private Security security = new Security();
     private Approval approval = new Approval();
     private Legacy legacy = new Legacy();
+    private Keycloak keycloak = new Keycloak();
+    private V1 v1 = new V1();
 
     public Llm getLlm() {
         return llm;
@@ -52,6 +54,109 @@ public class KompasProperties {
 
     public void setApproval(Approval approval) {
         this.approval = approval;
+    }
+
+    public Keycloak getKeycloak() {
+        return keycloak;
+    }
+
+    public void setKeycloak(Keycloak keycloak) {
+        this.keycloak = keycloak;
+    }
+
+    public V1 getV1() {
+        return v1;
+    }
+
+    public void setV1(V1 v1) {
+        this.v1 = v1;
+    }
+
+    /** Проверка RS256-токенов Keycloak для нового слоя /api/v1. */
+    public static class Keycloak {
+
+        /** Издатель токена (realm Keycloak). */
+        private String issuerUri = "http://localhost:3000/realms/compass";
+
+        /** Эндпоинт публичных ключей. По умолчанию выводится из issuerUri. */
+        private String jwksUri = "";
+
+        /** Ожидаемый клиент: принимается в aud ИЛИ azp. */
+        private String audience = "compass-frontend";
+
+        /** Допустимое расхождение часов при проверке exp/nbf, секунды. */
+        private long clockSkewSeconds = 5;
+
+        public String getIssuerUri() {
+            return issuerUri;
+        }
+
+        public void setIssuerUri(String issuerUri) {
+            this.issuerUri = issuerUri;
+        }
+
+        public String getJwksUri() {
+            return jwksUri == null || jwksUri.isBlank()
+                    ? issuerUri + "/protocol/openid-connect/certs"
+                    : jwksUri;
+        }
+
+        public void setJwksUri(String jwksUri) {
+            this.jwksUri = jwksUri;
+        }
+
+        public String getAudience() {
+            return audience;
+        }
+
+        public void setAudience(String audience) {
+            this.audience = audience;
+        }
+
+        public long getClockSkewSeconds() {
+            return clockSkewSeconds;
+        }
+
+        public void setClockSkewSeconds(long clockSkewSeconds) {
+            this.clockSkewSeconds = clockSkewSeconds;
+        }
+    }
+
+    /** Параметры слоя /api/v1 (стриминг SSE — используются позже, в M3+). */
+    public static class V1 {
+
+        /** Сколько слов ассистентского текста уходит в одном MESSAGE_DELTA. */
+        private int streamChunkWords = 3;
+
+        /** Задержка между чанками стрима, мс. */
+        private long streamDelayMs = 35;
+
+        /** Таймаут SseEmitter, мс (> времени LLM с ретраями). */
+        private long emitterTimeoutMs = 240000;
+
+        public int getStreamChunkWords() {
+            return streamChunkWords;
+        }
+
+        public void setStreamChunkWords(int streamChunkWords) {
+            this.streamChunkWords = streamChunkWords;
+        }
+
+        public long getStreamDelayMs() {
+            return streamDelayMs;
+        }
+
+        public void setStreamDelayMs(long streamDelayMs) {
+            this.streamDelayMs = streamDelayMs;
+        }
+
+        public long getEmitterTimeoutMs() {
+            return emitterTimeoutMs;
+        }
+
+        public void setEmitterTimeoutMs(long emitterTimeoutMs) {
+            this.emitterTimeoutMs = emitterTimeoutMs;
+        }
     }
 
     public static class Llm {

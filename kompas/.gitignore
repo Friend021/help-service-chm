@@ -7,3 +7,8 @@ dist/
 *.log
 .idea/
 .vscode/
+
+# drawio backup/lock files
+*.bkp
+# offline STT model (большой бинарник; качается отдельно, см. HANDOFF.md §5)
+frontend-v2/public/models/

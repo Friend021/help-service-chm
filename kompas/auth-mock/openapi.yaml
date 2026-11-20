@@ -1,0 +1,883 @@
+openapi: 3.1.0
+info:
+  title: Compass mock backend
+  version: 1.0.0
+  description: |
+    Мок бэкенда для Angular SPA «Компас» (ИПР): REST + SSE + эмуляция Keycloak.
+
+    Мок повторяет боевой контракт, чтобы переключение на реальный бэкенд сводилось
+    к смене `apiUrl` и адреса Keycloak. Состояние хранится в памяти процесса.
+
+    ## Авторизация
+    1. Получите токен в mock-Keycloak (`POST /realms/compass/protocol/openid-connect/token`).
+    2. Передавайте его как `Authorization: Bearer <access_token>`.
+
+    `demo / demo` — сотрудник, `hr / hr` — HR.
+  contact:
+    name: Compass mock backend
+servers:
+  - url: http://localhost:3000
+    description: Локальный запуск
+tags:
+  - name: auth
+    description: Mock Keycloak (OIDC)
+  - name: session
+    description: Этап 1 — контекст сотрудника
+  - name: chat
+    description: Этапы 2–4 — диалог и SSE-стриминг
+  - name: idp
+    description: Черновик ИПР и экспорт
+  - name: mock-control
+    description: Dev-ручки управления моком
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      tags: [mock-control]
+      security: []
+      summary: Проверка живости
+      responses:
+        '200':
+          description: Сервис работает
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, const: ok }
+                  service: { type: string }
+                  time: { type: string, format: date-time }
+                  realm: { type: string }
+                  clientId: { type: string }
+                  authRequired: { type: boolean }
+                  issuer: { type: string }
+
+  /api/v1/session/context:
+    get:
+      tags: [session]
+      summary: Контекст сотрудника (Шаг 1.1)
+      description: |
+        Возвращает профиль сотрудника и должности. Если `currentPosition = null`,
+        фронтенд переходит на Шаг 1.2 (ручной ввод).
+        Параметр `scenario` дополнительно переключает сценарий сессии.
+      parameters:
+        - name: scenario
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Scenario'
+      responses:
+        '200':
+          description: Контекст получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  context: { $ref: '#/components/schemas/EmployeeContext' }
+                  scenario: { $ref: '#/components/schemas/Scenario' }
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+                  isNewEmployee: { type: boolean }
+                  returnUrl: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/session/context/manual:
+    post:
+      tags: [session]
+      summary: Ручной ввод должностей (Шаг 1.2)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPosition, targetPosition]
+              properties:
+                currentPosition: { type: string, minLength: 1, maxLength: 200 }
+                targetPosition: { type: string, minLength: 1, maxLength: 200 }
+      responses:
+        '200':
+          description: Контекст сохранён, сессия на этапе 2
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  context: { $ref: '#/components/schemas/EmployeeContext' }
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/idp/dictionaries:
+    get:
+      tags: [idp]
+      summary: Справочники для панели ИПР
+      responses:
+        '200':
+          description: Направления, приоритеты, инструменты, этапы
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  directions:
+                    type: array
+                    items: { type: string }
+                    minItems: 11
+                    maxItems: 11
+                  priorities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rank: { type: integer, minimum: 0, maximum: 2 }
+                        label: { type: string, enum: [Высокий, Средний, Низкий] }
+                  developmentTools:
+                    type: array
+                    items: { type: string }
+                    minItems: 3
+                    maxItems: 3
+                  stages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        stage: { $ref: '#/components/schemas/WorkflowStage' }
+                        stepNumber: { type: integer, minimum: 1, maximum: 5 }
+                        label: { type: string }
+                        totalSteps: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/chat/messages:
+    get:
+      tags: [chat]
+      summary: История сообщений текущей сессии
+      responses:
+        '200':
+          description: Сообщения
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+                  messages:
+                    type: array
+                    items: { $ref: '#/components/schemas/ChatMessage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/chat/init-assessment:
+    post:
+      tags: [chat]
+      summary: 'SSE: поиск ДИ, приветствие и опросник (Шаги 2.1–2.2)'
+      description: |
+        Стримит `STAGE_UPDATE`, `MESSAGE_DELTA*`, `QUESTIONNAIRE_READY`, `DONE`.
+        Требует заполненной целевой должности, иначе 409.
+      responses:
+        '200':
+          description: SSE-поток
+          content:
+            text/event-stream:
+              schema: { type: string }
+              examples:
+                events:
+                  summary: Пример последовательности
+                  value: |
+                    event: STAGE_UPDATE
+                    data: {"type":"STAGE_UPDATE","stage":"STAGE_2_QUESTIONNAIRE","stepNumber":2,"totalSteps":5}
+
+                    event: MESSAGE_DELTA
+                    data: {"type":"MESSAGE_DELTA","messageId":"uuid","delta":"Я нашёл должностную "}
+
+                    event: QUESTIONNAIRE_READY
+                    data: {"type":"QUESTIONNAIRE_READY","skills":[{"skillId":"skill-spa-architecture","skillName":"Проектирование архитектуры SPA","description":"...","rating":null}]}
+
+                    event: DONE
+                    data: {"type":"DONE"}
+        '409':
+          description: Целевая должность не определена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/chat/generate-draft:
+    post:
+      tags: [chat]
+      summary: 'SSE: генерация черновика ИПР (Шаги 3.1–3.2)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ratings]
+              properties:
+                ratings:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [skillId, rating]
+                    properties:
+                      skillId: { type: string }
+                      rating: { type: integer, minimum: 1, maximum: 5 }
+      responses:
+        '200':
+          description: |
+            SSE-поток: `STAGE_UPDATE` (3) → текст → `PLAN_DRAFT_UPDATE` → `STAGE_UPDATE` (4) → текст → `DONE`.
+          content:
+            text/event-stream:
+              schema: { type: string }
+              examples:
+                planUpdate:
+                  summary: Событие с планом
+                  value: |
+                    event: PLAN_DRAFT_UPDATE
+                    data: {"type":"PLAN_DRAFT_UPDATE","plan":{"mainGoal":"...","directions":[{"rank":0,"goal":"Изучение инструментария и технологий","description":"...","tasks":[{"developmentTool":"Развитие через рабочие курсы","comment":"","deadLine":"2027-01-15T12:00:00.000Z","description":"..."}]}]}}
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '409':
+          description: Контекст не заполнен
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/chat/dialog:
+    post:
+      tags: [chat]
+      summary: 'SSE: пошаговый диалог заполнения ИПР'
+      description: |
+        Без `message` — запускает диалог и задаёт первый вопрос.
+        С `message` — принимает ответ пользователя, обновляет план
+        (`PLAN_DRAFT_UPDATE`) и задаёт следующий вопрос.
+        Состояние шага передаётся событием `DIALOG_STATE`.
+        Сценарий: цель → направление → что развить → действия →
+        добавление ещё одного направления (до 3).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '200':
+          description: SSE-поток с вопросом и обновлённым планом
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '409':
+          description: Диалог не запущен, а сообщение передано
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/chat/refine-draft:
+    post:
+      tags: [chat]
+      summary: 'SSE: цикл корректировки (Шаг 4.1)'
+      description: |
+        Детерминированно разбирает сообщение: приоритет, срок (месяц/ISO-дата),
+        инструмент развития, добавление/удаление направлений и действий.
+        Отвечает `STAGE_UPDATE`, `PLAN_DRAFT_UPDATE`, `MESSAGE_DELTA*`, `DONE`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '200':
+          description: SSE-поток с обновлённым планом
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '409':
+          description: Черновик ещё не сформирован
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/chat/confirm:
+    post:
+      tags: [chat]
+      summary: Подтверждение плана (Этап 5)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plan: { $ref: '#/components/schemas/IdpPlan' }
+      responses:
+        '200':
+          description: Сессия переведена на STAGE_5_COMPLETED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+                  plan: { $ref: '#/components/schemas/IdpPlan' }
+                  isValid: { type: boolean }
+                  validationErrors:
+                    type: array
+                    items: { type: string }
+                  priorities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        goal: { type: string }
+                        rank: { type: integer }
+                        label: { type: string }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/idp/draft:
+    get:
+      tags: [idp]
+      summary: Текущий черновик
+      responses:
+        '200':
+          description: План и статус валидности
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+                  plan: { $ref: '#/components/schemas/IdpPlan' }
+                  isValid: { type: boolean }
+                  validationErrors:
+                    type: array
+                    items: { type: string }
+                  exportedAt:
+                    type: [string, 'null']
+                    format: date-time
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    put:
+      tags: [idp]
+      summary: Сохранить ручные правки из панели ИПР
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan]
+              properties:
+                plan: { $ref: '#/components/schemas/IdpPlanDraft' }
+      responses:
+        '200':
+          description: План сохранён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+                  plan: { $ref: '#/components/schemas/IdpPlan' }
+                  isValid: { type: boolean }
+                  validationErrors:
+                    type: array
+                    items: { type: string }
+                  exportedAt:
+                    type: [string, 'null']
+                    format: date-time
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/idp/export:
+    post:
+      tags: [idp]
+      summary: Экспорт в сервис «План развития»
+      description: |
+        Проверяет строгий контракт: непустая `mainGoal`, непустые `directions`,
+        значения из справочников, ISO 8601 UTC в `deadLine`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IdpExportRequest' }
+      responses:
+        '200':
+          description: План принят
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdpExportResponse' }
+        '422':
+          description: Контракт не прошёл валидацию
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - type: object
+                    properties:
+                      errors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            path: { type: string, example: plan.directions.0.tasks.0.deadLine }
+                            message: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /mock/state:
+    get:
+      tags: [mock-control]
+      summary: Состояние сессии (dev)
+      responses:
+        '200':
+          description: Снимок состояния
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subject:
+                    type: object
+                    properties:
+                      sub: { type: string }
+                      name: { type: string }
+                  scenario: { $ref: '#/components/schemas/Scenario' }
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+                  context: { $ref: '#/components/schemas/EmployeeContext' }
+                  skills:
+                    type: array
+                    items: { $ref: '#/components/schemas/SkillAssessmentItem' }
+                  plan: { $ref: '#/components/schemas/IdpPlan' }
+                  chatMessages: { type: integer }
+                  exportedAt:
+                    type: [string, 'null']
+                    format: date-time
+                  updatedAt: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /mock/scenario:
+    post:
+      tags: [mock-control]
+      summary: Переключить сценарий Этапа 1 (dev)
+      description: Сбрасывает опросник, черновик и чат текущей сессии.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scenario]
+              properties:
+                scenario: { $ref: '#/components/schemas/Scenario' }
+      responses:
+        '200':
+          description: Сценарий применён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scenario: { $ref: '#/components/schemas/Scenario' }
+                  stage: { $ref: '#/components/schemas/WorkflowStage' }
+                  context: { $ref: '#/components/schemas/EmployeeContext' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /mock/reset:
+    post:
+      tags: [mock-control]
+      summary: Очистить все сессии (dev)
+      responses:
+        '200':
+          description: Очищено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  message: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /realms/{realm}/.well-known/openid-configuration:
+    get:
+      tags: [auth]
+      security: []
+      summary: OIDC discovery
+      parameters:
+        - $ref: '#/components/parameters/Realm'
+      responses:
+        '200':
+          description: Метаданные провайдера
+          content:
+            application/json:
+              schema: { type: object }
+
+  /realms/{realm}/protocol/openid-connect/certs:
+    get:
+      tags: [auth]
+      security: []
+      summary: JWKS (RS256)
+      parameters:
+        - $ref: '#/components/parameters/Realm'
+      responses:
+        '200':
+          description: Набор публичных ключей
+          content:
+            application/json:
+              schema: { type: object }
+
+  /realms/{realm}/protocol/openid-connect/auth:
+    get:
+      tags: [auth]
+      security: []
+      summary: Страница входа (authorization code flow)
+      parameters:
+        - $ref: '#/components/parameters/Realm'
+        - name: client_id
+          in: query
+          required: true
+          schema: { type: string }
+        - name: redirect_uri
+          in: query
+          required: true
+          schema: { type: string, format: uri }
+        - name: response_type
+          in: query
+          required: true
+          schema: { type: string, enum: [code] }
+        - name: state
+          in: query
+          schema: { type: string }
+        - name: nonce
+          in: query
+          schema: { type: string }
+        - name: code_challenge
+          in: query
+          schema: { type: string }
+        - name: code_challenge_method
+          in: query
+          schema: { type: string, enum: [S256, plain] }
+      responses:
+        '200':
+          description: HTML-форма входа
+          content:
+            text/html:
+              schema: { type: string }
+        '400':
+          description: Некорректный client_id или redirect_uri
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    post:
+      tags: [auth]
+      security: []
+      summary: Отправка формы входа
+      parameters:
+        - $ref: '#/components/parameters/Realm'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '302':
+          description: Редирект на redirect_uri с code
+        '401':
+          description: Неверные учётные данные (HTML с ошибкой)
+          content:
+            text/html:
+              schema: { type: string }
+
+  /realms/{realm}/protocol/openid-connect/token:
+    post:
+      tags: [auth]
+      security: []
+      summary: Выдача токенов
+      parameters:
+        - $ref: '#/components/parameters/Realm'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [grant_type, client_id]
+              properties:
+                grant_type:
+                  type: string
+                  enum: [password, authorization_code, refresh_token, client_credentials]
+                client_id: { type: string }
+                client_secret: { type: string }
+                username: { type: string }
+                password: { type: string }
+                code: { type: string }
+                redirect_uri: { type: string }
+                code_verifier: { type: string }
+                refresh_token: { type: string }
+      responses:
+        '200':
+          description: Токены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: { type: string }
+                  expires_in: { type: integer }
+                  refresh_expires_in: { type: integer }
+                  refresh_token: { type: string }
+                  token_type: { type: string, const: Bearer }
+                  session_state: { type: string }
+                  scope: { type: string }
+                  id_token: { type: string }
+        '400':
+          description: Ошибка OAuth2
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+                  error_description: { type: string }
+
+  /realms/{realm}/protocol/openid-connect/userinfo:
+    get:
+      tags: [auth]
+      summary: Профиль по токену
+      parameters:
+        - $ref: '#/components/parameters/Realm'
+      responses:
+        '200':
+          description: Claims пользователя
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /realms/{realm}/protocol/openid-connect/logout:
+    post:
+      tags: [auth]
+      security: []
+      summary: Выход
+      parameters:
+        - $ref: '#/components/parameters/Realm'
+      responses:
+        '204':
+          description: Сессия завершена
+        '302':
+          description: Редирект после выхода
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Realm:
+      name: realm
+      in: path
+      required: true
+      schema: { type: string, default: compass }
+  responses:
+    Unauthorized:
+      description: Нет токена или токен недействителен
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    ValidationError:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path: { type: string }
+                        message: { type: string }
+  schemas:
+    Scenario:
+      type: string
+      enum: [known_employee, new_employee]
+    WorkflowStage:
+      type: string
+      enum:
+        - STAGE_1_CONTEXT
+        - STAGE_1_2_ONBOARDING
+        - STAGE_2_QUESTIONNAIRE
+        - STAGE_3_DRAFT_GEN
+        - STAGE_4_REFINEMENT
+        - STAGE_5_COMPLETED
+    EmployeeContext:
+      type: object
+      required:
+        - employeeId
+        - fullName
+        - managerFullName
+        - hasActiveIdpWarning
+        - currentPosition
+        - targetPosition
+        - returnUrl
+        - isNewEmployee
+      properties:
+        employeeId: { type: string, example: emp-001 }
+        fullName: { type: string, example: Константинопольских К. }
+        managerFullName: { type: string }
+        hasActiveIdpWarning: { type: boolean }
+        currentPosition:
+          type: [string, 'null']
+          example: Middle Frontend Developer
+        targetPosition:
+          type: [string, 'null']
+          example: Senior Frontend Developer
+        returnUrl: { type: string, format: uri }
+        isNewEmployee: { type: boolean }
+    SkillAssessmentItem:
+      type: object
+      required: [skillId, skillName, description, rating]
+      properties:
+        skillId: { type: string }
+        skillName: { type: string }
+        description: { type: string }
+        rating:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 5
+    ChatMessage:
+      type: object
+      properties:
+        id: { type: string }
+        role: { type: string, enum: [assistant, user] }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+    IdpTask:
+      type: object
+      required: [developmentTool, comment, deadLine, description]
+      properties:
+        developmentTool:
+          type: string
+          enum:
+            - Развитие на рабочем месте
+            - Развитие через других
+            - Развитие через рабочие курсы
+        comment: { type: string }
+        deadLine:
+          type: string
+          format: date-time
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$'
+          example: '2026-10-16T07:32:12.162Z'
+        description: { type: string, minLength: 1 }
+        commentAuthor:
+          type: string
+          description: Имя автора комментария (руководитель/наставник/сотрудник).
+        commentCreatedAt:
+          type: string
+          format: date-time
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$'
+          example: '2026-10-16T07:32:12.162Z'
+    IdpDirection:
+      type: object
+      required: [rank, goal, description, tasks]
+      properties:
+        rank: { type: integer, enum: [0, 1, 2] }
+        goal:
+          type: string
+          enum:
+            - Цели развития не определены/Развитие не требуется
+            - Адаптация к должности
+            - Повышение объемов производства
+            - Увеличение скорости выполнения задач
+            - Увеличение качества выполняемых задач
+            - Развитие личностных компетенций
+            - Развитие управленческих компетенций
+            - Кадровый резерв на должность/роль
+            - Адаптация к процессам
+            - Изучение продуктов
+            - Изучение инструментария и технологий
+        description: { type: string, minLength: 1 }
+        tasks:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/IdpTask' }
+    IdpPlan:
+      type: object
+      required: [mainGoal, directions]
+      properties:
+        mainGoal: { type: string, minLength: 1 }
+        directions:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/IdpDirection' }
+    IdpPlanDraft:
+      type: object
+      description: Та же структура, но поля могут быть пустыми (ручные правки в процессе).
+      properties:
+        mainGoal: { type: string }
+        directions:
+          type: array
+          items:
+            type: object
+            properties:
+              rank: { type: integer, minimum: 0, maximum: 2 }
+              goal: { type: string }
+              description: { type: string }
+              tasks:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    developmentTool: { type: string }
+                    comment: { type: string }
+                    deadLine: { type: string }
+                    description: { type: string }
+                    commentAuthor: { type: string }
+                    commentCreatedAt:
+                      type: string
+                      format: date-time
+                      pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$'
+                      example: '2026-10-16T07:32:12.162Z'
+    IdpExportRequest:
+      type: object
+      required: [plan]
+      properties:
+        plan: { $ref: '#/components/schemas/IdpPlan' }
+    IdpExportResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        returnUrl: { type: string, format: uri }
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              path: { type: string }
+              message: { type: string }

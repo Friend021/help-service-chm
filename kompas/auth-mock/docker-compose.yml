@@ -1,0 +1,18 @@
+services:
+  mock-backend:
+    build: .
+    container_name: compass-mock-backend
+    ports:
+      - "3000:3000"
+    environment:
+      PUBLIC_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:4200
+      ALLOWED_REDIRECT_ORIGINS: http://localhost:4200
+      LEGACY_RETURN_URL: ${LEGACY_RETURN_URL:-https://re-team.internal/assessment/development-plan?imported=true}
+      INITIAL_DELAY_MS: "400"
+      STREAM_DELAY_MS: "35"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

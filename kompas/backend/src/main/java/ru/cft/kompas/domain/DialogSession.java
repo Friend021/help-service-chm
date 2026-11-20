@@ -40,6 +40,10 @@ public class DialogSession {
     @Column(name = "stage_turns", nullable = false)
     private int stageTurns = 0;
 
+    /** Подтвердил ли сотрудник контекст (должности). Пока false — показываем шаг онбординга. */
+    @Column(name = "context_confirmed", nullable = false)
+    private boolean contextConfirmed = false;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -105,6 +109,14 @@ public class DialogSession {
 
     public void setStageTurns(int stageTurns) {
         this.stageTurns = stageTurns;
+    }
+
+    public boolean isContextConfirmed() {
+        return contextConfirmed;
+    }
+
+    public void setContextConfirmed(boolean contextConfirmed) {
+        this.contextConfirmed = contextConfirmed;
     }
 
     public Instant getCreatedAt() {

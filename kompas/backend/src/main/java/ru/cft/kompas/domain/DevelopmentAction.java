@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.time.LocalDate;
 
 /**
@@ -45,6 +46,16 @@ public class DevelopmentAction {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ActionStatus status = ActionStatus.NOT_STARTED;
+
+    /** Комментарий к действию (руководитель/наставник/сотрудник) — поле нового фронта. */
+    @Column(columnDefinition = "text")
+    private String comment;
+
+    @Column(name = "comment_author", columnDefinition = "text")
+    private String commentAuthor;
+
+    @Column(name = "comment_created_at")
+    private Instant commentCreatedAt;
 
     public Long getId() {
         return id;
@@ -100,5 +111,29 @@ public class DevelopmentAction {
 
     public void setStatus(ActionStatus status) {
         this.status = status;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getCommentAuthor() {
+        return commentAuthor;
+    }
+
+    public void setCommentAuthor(String commentAuthor) {
+        this.commentAuthor = commentAuthor;
+    }
+
+    public Instant getCommentCreatedAt() {
+        return commentCreatedAt;
+    }
+
+    public void setCommentCreatedAt(Instant commentCreatedAt) {
+        this.commentCreatedAt = commentCreatedAt;
     }
 }

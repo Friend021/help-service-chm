@@ -28,6 +28,9 @@ public class AccessTokenFilter extends OncePerRequestFilter {
         if (!path.startsWith("/api/")) {
             return true;
         }
+        if (path.startsWith("/api/v1/")) {
+            return true;
+        }
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
