@@ -1,11 +1,32 @@
 server:
   port: 8081
+  # Хэндовер-токен из «Компаса» прилетает в URL (/import?token=<длинный JWT>),
+  # а поверх браузер подклеивает куки Keycloak/сессии. Суммарно строка запроса
+  # + заголовки перелезают дефолтные 8 КБ Tomcat → «Request header is too large»
+  # и переход на :8081 падает ещё до контроллера. Поднимаем лимит.
+  max-http-request-header-size: 64KB
 
 spring:
   application:
     name: legacy-stub
   config:
     import: classpath:demo-employees.yml
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: ${OIDC_CLIENT_ID:compass-frontend}
+            # Публичный клиент (PKCE), без секрета — как и фронт Компаса.
+            client-authentication-method: none
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
+            provider: keycloak
+        provider:
+          keycloak:
+            issuer-uri: ${OIDC_ISSUER_URI:http://localhost:3000/realms/compass}
+            user-name-attribute: preferred_username
   thymeleaf:
     cache: false
   web:
