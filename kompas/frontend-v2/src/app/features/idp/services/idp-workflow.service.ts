@@ -177,16 +177,17 @@ export class IdpWorkflowService {
   }
 
   /**
-   * POST /idp/export. Redirect is the backend-provided LEGACY_RETURN_URL and
-   * happens here on success; the caller only needs to care about failures.
+   * POST /idp/export. Возвращает handover-URL «Плана развития» на успехе (иначе null).
+   * По умолчанию сразу редиректит туда; передай { autoRedirect: false }, чтобы сначала
+   * показать подтверждение, а переход выполнить вручную по URL из ответа.
    */
-  async exportPlan(): Promise<string | null> {
+  async exportPlan(opts?: { autoRedirect?: boolean }): Promise<string | null> {
     const response = await this.store.exportPlan();
-    if (response.success && response.returnUrl) {
-      window.location.href = response.returnUrl;
-      return response.returnUrl;
+    const url = response.success && response.returnUrl ? response.returnUrl : null;
+    if (url && (opts?.autoRedirect ?? true)) {
+      window.location.href = url;
     }
-    return null;
+    return url;
   }
 
   // --- Shell helpers ---

@@ -15,6 +15,7 @@ import { CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ConfirmPlanDialogComponent } from '../../../shared/components/confirm-plan-dialog/confirm-plan-dialog.component';
+import { ExportSuccessDialogComponent } from '../../../shared/components/export-success-dialog/export-success-dialog.component';
 import { IdpStoreService } from '../../../core/state/idp-store.service';
 import { IdpWorkflowService } from '../services/idp-workflow.service';
 import { ChatMessageComponent } from '../../../shared/components/chat-message/chat-message.component';
@@ -864,13 +865,31 @@ export class DraftComponent implements AfterViewInit, OnDestroy, OnInit {
     if (!confirmed) return;
 
     this.confirming.set(true);
+    let returnUrl: string | null = null;
+    let exported = false;
     try {
-      // Экспорт прямо из диалога подтверждения: на успехе редиректит в «План развития».
-      await this.workflow.exportPlan();
+      // Экспорт без авто-редиректа: сначала покажем окно подтверждения.
+      returnUrl = await this.workflow.exportPlan({ autoRedirect: false });
+      exported = true;
     } catch {
       // 422: ошибки валидации сохранены стором и показаны в баннере.
     } finally {
       this.confirming.set(false);
+    }
+
+    if (!exported) return;
+
+    // Окно «ИПР экспортирован в «План развития»»: переход — только по кнопке.
+    const goToPlan = await firstValueFrom(
+      this.dialog.open(ExportSuccessDialogComponent, {
+        data: { hasReturnUrl: !!returnUrl },
+        width: '480px',
+        maxWidth: '92vw',
+        disableClose: true,
+      }).afterClosed(),
+    );
+    if (goToPlan && returnUrl) {
+      window.location.href = returnUrl;
     }
   }
 
