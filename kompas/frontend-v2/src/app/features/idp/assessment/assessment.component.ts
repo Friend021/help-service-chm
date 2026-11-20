@@ -84,7 +84,7 @@ const STREAM_IDLE_TIMEOUT_MS = 15_000;
               <mat-card-title>Опросник компетенций</mat-card-title>
               <mat-card-subtitle>
                 Оцените ваш текущий уровень по каждому навыку от 1 до 5.
-                {{ ratedCount() }} из {{ store.skills().length }} оценено.
+                Оценено {{ ratedCount() }} из {{ store.skills().length }}.
               </mat-card-subtitle>
             </mat-card-header>
 
