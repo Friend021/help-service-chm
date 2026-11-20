@@ -125,7 +125,6 @@ cd kompas\frontend-v2 && npm install && npm start   # :4200
 | `handoff-context.md` | Контракт входа `HandoffContext`: что «План развития» передаёт в «Компас» (JSON, поля, открытые вопросы). |
 | `employee-data-requirements.md` | Какие данные о сотруднике нужны и откуда. |
 | `llm.md` | Выбор LLM-провайдера, RAG, переход на внутренний шлюз `ai.redelephant`. |
-| `kompas-schema-v2.drawio`, `Схема работы.drawio` | Визуальные схемы процесса и архитектуры (открывать в draw.io / diagrams.net). |
 
 ---
 
