@@ -136,8 +136,12 @@ export class PositionPickerDialogComponent {
 
   readonly search = signal('');
   readonly selected = signal<string | null>(this.data.selected ?? null);
-  /** null = ещё не инициализировано → раскрыть всё по умолчанию. */
-  readonly expanded = signal<Set<string> | null>(null);
+  /**
+   * Набор раскрытых веток. По умолчанию дерево свёрнуто (пустой набор);
+   * если должность уже выбрана (режим «изменить») — раскрываем путь до неё,
+   * чтобы выбранный пункт был сразу виден.
+   */
+  readonly expanded = signal<Set<string>>(this.pathToSelected());
 
   readonly tree = computed<OrgNode[]>(() => {
     const rows = this.data.positions ?? [];
@@ -180,7 +184,7 @@ export class PositionPickerDialogComponent {
 
   readonly visibleRows = computed<OrgRow[]>(() => {
     const q = this.search().trim().toLowerCase();
-    const open = this.expanded() ?? new Set(this.allBranchKeys());
+    const open = this.expanded();
 
     if (q) {
       const filter = (nodes: OrgNode[], depth: number, forceAll: boolean): OrgRow[] => {
@@ -230,9 +234,25 @@ export class PositionPickerDialogComponent {
   });
 
   toggle(key: string): void {
-    const next = new Set(this.expanded() ?? this.allBranchKeys());
+    const next = new Set(this.expanded());
     if (next.has(key)) next.delete(key); else next.add(key);
     this.expanded.set(next);
+  }
+
+  /** Ключи веток Блок → Дирекция → семейство для уже выбранной должности (для авто-раскрытия). */
+  private pathToSelected(): Set<string> {
+    const set = new Set<string>();
+    const title = this.data.selected;
+    if (!title) return set;
+    const p = (this.data.positions ?? []).find(r => r.title === title);
+    if (!p) return set;
+    const bKey = `b:${p.orgBlock || 'Прочее'}`;
+    const dKey = `${bKey}|d:${p.orgDirection || '—'}`;
+    const fKey = `${dKey}|f:${p.careerTrack || p.title}`;
+    set.add(bKey);
+    set.add(dKey);
+    set.add(fKey);
+    return set;
   }
 
   expandAll(): void { this.expanded.set(new Set(this.allBranchKeys())); }
