@@ -110,12 +110,11 @@ cd kompas\frontend-v2; npm install; npm start   # :4200
 ## 5. Секреты и крупные файлы (их НЕТ в архиве)
 
 - **`kompas/.env` в архив не входит** (секреты). Заполнить из `kompas/.env.example`:
-  - `LLM_API_KEY` — ключ OpenRouter (или свой OpenAI-совместимый шлюз). Пусто + профиль `local` — офлайн.
+  - `LLM_API_KEY` — ключ OpenRouter (или свой OpenAI-совместимый шлюз). Пусто → офлайн-мок (`LLM_PROVIDER=mock`).
   - `JWT_SECRET` — общий HMAC-секрет (≥32 симв.), одинаковый у backend и legacy-stub.
-- **Vosk-модель STT** (`frontend-v2/public/models/vosk-model-small-ru-0.22.tar.gz`, ~45 МБ) —
-  вложена в архив отдельно (нужна для голосового ввода). Если потеряется — качается с
-  alphacephei.com (`vosk-model-small-ru-0.22`). Голосовой ввод **опционален**; в бою STT —
-  во внутреннем контуре (Whisper on-prem / SpeechKit).
+- **Vosk-модель STT (~45 МБ) в архив НЕ входит.** Голосовой ввод **опционален** и по умолчанию
+  в docker выключен. Если нужен локально — скачать `vosk-model-small-ru-0.22` с alphacephei.com
+  и положить в `frontend-v2/public/models/`. В бою STT — во внутреннем контуре (Whisper on-prem / SpeechKit).
 - `node_modules`, `build/`, `.angular/`, `.gradle/` в архив не вошли — ставятся/собираются заново.
 
 ---
@@ -129,7 +128,11 @@ cd kompas\frontend-v2; npm install; npm start   # :4200
 | `process-full.md` | Подробнейшая спецификация сквозного процесса (шаги, эндпоинты, SSE) + дословные промпты из кода. |
 | `handoff-context.md` | Контракт входа `HandoffContext`: что «План развития» передаёт в «Компас» (JSON, поля, открытые вопросы). |
 | `employee-data-requirements.md` | Какие данные о сотруднике нужны и откуда. |
-| `llm.md` | Выбор LLM-провайдера, RAG, переход на внутренний шлюз `ai.redelephant`. |
+| `llm.md` | Ключ OpenRouter, лимиты/fallback, переход на `ai.redelephant`, приватность. ⚠️ Разделы про RAG и формат ответа описывают **старый оркестратор** — актуальный процесс/промпты в `process-full.md`. |
+
+> Актуальный слой — `ru.cft.kompas.v1` (бэк) и `frontend-v2` (фронт); для них смотреть
+> `v1-integration-plan.md` + `process-full.md`. Доки `README.md`/`llm.md` местами описывают старый
+> оркестратор `ru.cft.kompas.*` — это помечено по месту.
 
 ---
 
